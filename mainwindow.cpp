@@ -8,12 +8,16 @@
 #include "ImagesDialog.h"
 
 MainWindow::MainWindow()
+  : valid_(true)
 {
     alarmsWindow_ = new AlarmsWindow;
     setCentralWidget(alarmsWindow_);
 
-    connect(alarmsWindow_, SIGNAL(newMailMsg()),
-	    this, SLOT(cameras()));
+    connect(alarmsWindow_, SIGNAL(newMailMsg(const QString&)),
+	    this, SLOT(newMail(const QString&)));
+
+    if(!alarmsWindow_->isValid())
+      valid_ = false;
 
     createActions();
     createMenus();
@@ -24,6 +28,7 @@ MainWindow::MainWindow()
     //readSettings();
 
     cameraDialog_ = 0;
+    imagesDialog_ = 0;
 
     //setWindowIcon(QIcon(":/images/icon.png"));
 }
@@ -65,10 +70,52 @@ void MainWindow::cameras()
   cameraDialog_->activateWindow();
 }
 
+void MainWindow::newMail(const QString& str)
+{
+  // delete previous images
+  QDir dir("./images/" + str);
+  if(dir.exists()) {
+    QStringList filters;
+    foreach(QByteArray format, QImageReader::supportedImageFormats())
+      filters += "*." + format;
+
+    foreach(QString file, dir.entryList(filters, QDir::Files))
+      QFile::remove(dir.path() + "/" + file);
+  }
+  else {
+    QDir("./images").mkdir(str);
+  }
+
+  QProcess proc;
+  QStringList arg;
+  arg << "-f" << tr("../../Boost/smtpServer/spool/%1").arg(str)
+      << "-d" << dir.path();
+  proc.start("./mimeParser", arg);
+  proc.waitForFinished();
+
+  alarmsWindow_->newMessage(str);
+
+  ImagesDialog *dlg = new ImagesDialog(str, this);
+  dlg->setAttribute(Qt::WA_DeleteOnClose);
+  dlg->show();
+  
+  // if(!imagesDialog_)
+  //   imagesDialog_ = new ImagesDialog(str, this);
+
+  // imagesDialog_->reload();
+  // imagesDialog_->show();
+  // imagesDialog_->raise();
+  // imagesDialog_->activateWindow();
+}
+
 void MainWindow::imagesDialog()
 {
-  ImagesDialog dialog(this);
-  dialog.exec();
+  // if(!imagesDialog_)
+  //   imagesDialog_ = new ImagesDialog(QString("./images"), this);
+
+  // imagesDialog_->show();
+  // imagesDialog_->raise();
+  // imagesDialog_->activateWindow();
 }
 
 

@@ -8,11 +8,10 @@ CameraDialog::CameraDialog(QWidget *parent)
     : QDialog(parent)
 {
   ipComboBox_ = new QComboBox;
-  ipComboBox_->addItems(QStringList() << tr("80.246.243.35") << tr("127.0.0.1"));
+  ipComboBox_->addItems(QStringList() << tr("80.246.243.35") << tr("192.168.1.45"));
   ipComboBox_->setEditable(true);
-  ipLabel_ = new QLabel(trUtf8("IP-адрес"));
+  ipLabel_ = new QLabel(trUtf8("Видеорегистратор"));
   ipLabel_->setBuddy(ipComboBox_);
-  
 
   cameraComboBox_ = new QComboBox;
   cameraComboBox_->addItems(QStringList() << trUtf8("Камера 1")
@@ -22,7 +21,6 @@ CameraDialog::CameraDialog(QWidget *parent)
   cameraLabel_ = new QLabel(trUtf8("Камера"));
   cameraLabel_->setBuddy(cameraComboBox_);
   //label->setPixmap(QPixmap("image2.jpg"));
-  
   
   fpsSpinBox_ = new QSpinBox;
   fpsSpinBox_->setRange(1, 100);
@@ -115,9 +113,18 @@ void CameraDialog::httpReadyRead(const QHttpResponseHeader & resp)
     qDebug() << "Error: StatusCode = " << resp.statusCode() << "\n";
   else {
     QByteArray array = http_.readAll();
-    
-    if(array.contains(boundary_)) {
-      //std::cerr << "boundary found!!\n";
+
+     static const char new_lines_data[] = { 0x0D, 0x0A, 0x0D, 0x0A };
+     QByteArray new_lines = QByteArray::fromRawData(new_lines_data, sizeof(new_lines_data));
+
+    int boundary_pos = array.indexOf(boundary_);
+    if(boundary_pos >= 0) {
+      // write2File(QString("boundary.raw"), array);
+      
+      int new_lines_pos = array.indexOf(new_lines);
+      
+      if(boundary_pos>0)
+	image_.append(array.left(boundary_pos));
 
       QPixmap pixmap;
       pixmap.loadFromData(image_);
@@ -125,6 +132,12 @@ void CameraDialog::httpReadyRead(const QHttpResponseHeader & resp)
 
       imageWidget_->setImage(pixmap);
       image_.truncate(0);
+      
+      //std::cerr << "boundary found at " << boundary_pos << " " << new_lines_pos << " " << array.size() << "!!\n";
+      ++i_;
+
+      if(new_lines_pos+5 < array.size())
+	image_.append(array.mid(new_lines_pos+4));
     }
     else
       image_.append(array);

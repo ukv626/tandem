@@ -2,23 +2,13 @@
 
 #include "ImagesDialog.h"
 
-ImagesDialog::ImagesDialog(QWidget *parent)
-    : QDialog(parent)
+ImagesDialog::ImagesDialog(const QString &dir, QWidget *parent)
+  : QDialog(parent),
+    dir_(dir)
 {
   textBrowser_ = new QTextBrowser();
-  QString page("<html>");
-
-  QDir dir;
-  QStringList filters;
-  foreach(QByteArray format, QImageReader::supportedImageFormats())
-    filters += "*." + format;
-
-  foreach(QString file, dir.entryList(filters, QDir::Files))
-    page += tr("<img src=\"%1\" width=352 height=288 />").arg(file);
+  reload();
   
-  page += "</html>";
-  
-  textBrowser_->setHtml(page);
   //label->setPixmap(QPixmap("image2.jpg"));
 
 
@@ -48,5 +38,26 @@ ImagesDialog::ImagesDialog(QWidget *parent)
   
 }
 
+void ImagesDialog::reload()
+{
+  QString page("<html>");
+  QDir dir("./images/" + dir_);
 
+  QStringList filters;
+  foreach(QByteArray format, QImageReader::supportedImageFormats())
+    filters += "*." + format;
+
+  foreach(QString file, dir.entryList(filters, QDir::Files))
+    page += tr("<img src=\"%1\" width=352 height=288 />").arg(file);
+  
+  page += "</html>";
+
+  textBrowser_->setSearchPaths(QStringList() << dir.path());
+  textBrowser_->setHtml(page);
+}
+
+ImagesDialog::~ImagesDialog()
+{
+  qDebug() << "~ImagesDialog()";
+}
 

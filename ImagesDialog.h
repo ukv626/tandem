@@ -10,12 +10,14 @@ class ImagesDialog : public QDialog
 {
     Q_OBJECT
 public:
-    ImagesDialog(QWidget *parent = 0);
-    
+  ImagesDialog(const QString &dir, QWidget *parent = 0);
+  ~ImagesDialog();
+  void reload();
 
 private:
-    QTextBrowser *textBrowser_;
-    QDialogButtonBox *buttonBox_;
+  const QString dir_;
+  QTextBrowser *textBrowser_;
+  QDialogButtonBox *buttonBox_;
 };
 
 #endif

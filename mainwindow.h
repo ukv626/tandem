@@ -7,6 +7,7 @@ class QAction;
 class QLabel;
 class AlarmsWindow;
 class CameraDialog;
+class ImagesDialog;
 
 class MainWindow : public QMainWindow
 {
@@ -14,12 +15,14 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow();
+    bool isValid() { return valid_; }
 
 protected:
     void closeEvent(QCloseEvent *event);
 
 private slots:
     void cameras();
+    void newMail(const QString& str);
     void imagesDialog();
     void storages();
     void pays();
@@ -37,6 +40,7 @@ private:
 
     AlarmsWindow *alarmsWindow_;
     CameraDialog *cameraDialog_;
+    ImagesDialog *imagesDialog_;
     QLabel *locationLabel;
     QLabel *formulaLabel;
 
@@ -55,6 +59,7 @@ private:
     /* QAction *storagesAction; */
     /* QAction *paysAction; */
     QAction *aboutAction;
+    bool valid_;
 };
 
 #endif
