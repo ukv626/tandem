@@ -60,6 +60,7 @@ private:
     /* QAction *paysAction; */
     QAction *aboutAction;
     bool valid_;
+    bool canClose_;
 };
 
 #endif

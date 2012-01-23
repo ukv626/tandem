@@ -3,6 +3,7 @@
 
 #include <QDialog>
 
+class QLabel;
 class QTextBrowser;
 class QDialogButtonBox;
 
@@ -16,6 +17,7 @@ public:
 
 private:
   const QString dir_;
+  QLabel *label_;
   QTextBrowser *textBrowser_;
   QDialogButtonBox *buttonBox_;
 };

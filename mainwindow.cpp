@@ -8,7 +8,8 @@
 #include "ImagesDialog.h"
 
 MainWindow::MainWindow()
-  : valid_(true)
+  : valid_(true),
+    canClose_(true)
 {
     alarmsWindow_ = new AlarmsWindow;
     setCentralWidget(alarmsWindow_);
@@ -35,8 +36,21 @@ MainWindow::MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-  writeSettings();
-  event->accept();
+  if(canClose_) {
+    writeSettings();
+    event->accept();
+  }
+  else {
+    int r = QMessageBox::warning(this, trUtf8("Подтверждение"),
+        trUtf8("Действительно выйти?"),
+        QMessageBox::Yes,
+        QMessageBox::No | QMessageBox::Default | QMessageBox::Escape);
+
+  if (r == QMessageBox::Yes)
+    event->accept();
+  else 
+    event->ignore();
+  }
 }
 
 /*
@@ -92,9 +106,7 @@ void MainWindow::newMail(const QString& str)
       << "-d" << dir.path();
   proc.start("./mimeParser", arg);
   proc.waitForFinished();
-
-  alarmsWindow_->newMessage(str);
-
+  
   ImagesDialog *dlg = new ImagesDialog(str, this);
   dlg->setAttribute(Qt::WA_DeleteOnClose);
   dlg->show();

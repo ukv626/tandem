@@ -6,6 +6,7 @@ ImagesDialog::ImagesDialog(const QString &dir, QWidget *parent)
   : QDialog(parent),
     dir_(dir)
 {
+  label_ = new QLabel();
   textBrowser_ = new QTextBrowser();
   reload();
   
@@ -27,6 +28,7 @@ ImagesDialog::ImagesDialog(const QString &dir, QWidget *parent)
   connect(buttonBox_, SIGNAL(rejected()), this, SLOT(reject()));
 
   QVBoxLayout *layout = new QVBoxLayout;
+  layout->addWidget(label_);
   layout->addWidget(textBrowser_);
   layout->addWidget(buttonBox_);
   setLayout(layout);
@@ -43,6 +45,28 @@ void ImagesDialog::reload()
   QString page("<html>");
   QDir dir("./images/" + dir_);
 
+  QFile file(dir.path()+"/mail.info");
+  QString msg("<PRE><H3>");
+  if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+      QString line = in.readLine();
+      msg += line + "<BR>";
+      // QStringList fields = line.split(';');
+      // if(fields.size() == 4) {
+      // 	qint16 id    = fields.takeFirst().toInt();
+      // 	qint8 type   = fields.takeFirst().toInt();
+      // 	bool alert   = fields.takeFirst().toInt();
+      // 	QString text = fields.takeFirst();
+      // 	Event event  = { id, type, alert, text };
+      // 	events_.push_back(event);
+      // }
+    }
+    msg+="</H3></PRE>";
+    label_->setText(msg);
+  }
+
   QStringList filters;
   foreach(QByteArray format, QImageReader::supportedImageFormats())
     filters += "*." + format;
@@ -58,6 +82,6 @@ void ImagesDialog::reload()
 
 ImagesDialog::~ImagesDialog()
 {
-  qDebug() << "~ImagesDialog()";
+  // qDebug() << "~ImagesDialog()";
 }
 

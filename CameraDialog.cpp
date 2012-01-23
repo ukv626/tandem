@@ -25,7 +25,7 @@ CameraDialog::CameraDialog(QWidget *parent)
   fpsSpinBox_ = new QSpinBox;
   fpsSpinBox_->setRange(1, 100);
   fpsSpinBox_->setSingleStep(1);
-  fpsSpinBox_->setValue(10);
+  fpsSpinBox_->setValue(30);
 
   fpsLabel_ = new QLabel(trUtf8("Кадров/сек"));
   fpsLabel_->setBuddy(fpsSpinBox_);
