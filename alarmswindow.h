@@ -10,6 +10,7 @@
 class QLabel;
 class QTcpServer;
 class QTableWidget;
+class QTextBrowser;
 
 class AlarmsTableView: public QTableView
 {
@@ -17,9 +18,10 @@ class AlarmsTableView: public QTableView
  public:
   AlarmsTableView(QWidget *parent);
  signals:
-  void doubleClicked (const QModelIndex & index);
+  void doubleClicked(const QModelIndex &index);
+
  private:
-  void mouseDoubleClickEvent(QMouseEvent * event);
+  void mouseDoubleClickEvent(QMouseEvent *event);
 };
 
 /* struct Event */
@@ -54,15 +56,7 @@ class AlarmsTableView: public QTableView
 class AlarmsRelTableModel : public QSqlRelationalTableModel {
      Q_OBJECT
  public:
-  enum {
-    Date = 0,
-    Act = 1,
-    Q = 2,
-    Eee = 3,
-    Gg = 4,
-    Zzz = 5,
-    IsRead = 6
-  };
+  enum { Id, Date, Act, Q, Eee, Gg, Zzz,IsRead };
   
   AlarmsRelTableModel(QObject *parent = 0);
   QVariant data(const QModelIndex &index,
@@ -86,6 +80,8 @@ public:
 private slots:
   void accept();
   void readMsg();
+  void showPictures(const QItemSelection &selected,
+		   const QItemSelection &deselected);
   void showMessage();
   void doubleClick(const QModelIndex &index);
 
@@ -101,6 +97,7 @@ private:
   QByteArray data_;
   quint8 nextBlockSize;
   QLabel *label1_, *label2_, *label3_, *label4_;
+  QTextBrowser *textBrowser_;
   /* std::vector<Event> events_; */
   bool valid_;
     /* QLineEdit *lineEdit; */

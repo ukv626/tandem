@@ -46,8 +46,9 @@ void ImagesDialog::reload()
   QDir dir("./images/" + dir_);
 
   QFile file(dir.path()+"/mail.info");
-  QString msg("<PRE><H3>");
+
   if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+    QString msg("<PRE><H3>");
 
     QTextStream in(&file);
     while (!in.atEnd()) {
@@ -63,7 +64,7 @@ void ImagesDialog::reload()
       // 	events_.push_back(event);
       // }
     }
-    msg+="</H3></PRE>";
+    msg += "</H3></PRE>";
     label_->setText(msg);
   }
 

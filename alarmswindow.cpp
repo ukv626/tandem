@@ -18,6 +18,7 @@ void AlarmsTableView::mouseDoubleClickEvent(QMouseEvent *event)
   event->accept();
 }
 
+
 AlarmsRelTableModel::AlarmsRelTableModel(QObject *parent)
   : QSqlRelationalTableModel(parent)
 {
@@ -107,18 +108,19 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   tableView_->setItemDelegate(new QSqlRelationalDelegate(tableView_));
 
   tableView_->setSelectionBehavior(QAbstractItemView::SelectRows);
-  //tableView_->setSelectionMode(QAbstractItemView::NoSelection);
+  tableView_->setSelectionMode(QAbstractItemView::SingleSelection);
   tableView_->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   
   tableView_->setColumnHidden(AlarmsRelTableModel::IsRead, true);
-  // tableView->setColumnHidden(MoveDialog::Move_DetailId, true);
+  tableView_->setColumnHidden(AlarmsRelTableModel::Id, true);
   // tableView->setColumnHidden(MoveDialog::Move_Qty, true);
   
   tableView_->verticalHeader()->hide();
   tableView_->resizeColumnsToContents();
   tableView_->setAlternatingRowColors(true);
-  tableView_->setCurrentIndex(tableView_->model()->index(0, 0));
+  //tableView_->setCurrentIndex(tableView_->model()->index(0, 0));
+  tableView_->selectRow(0);
 
   QAction *showMessageAction = new QAction(trUtf8("Просмотр.."), this);
   //showMessageAction->setShortcut(tr("Ins"));
@@ -128,17 +130,31 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   tableView_->setContextMenuPolicy(Qt::ActionsContextMenu);
 
   connect(tableView_, SIGNAL(doubleClicked(QModelIndex)),
-	  this, SLOT(doubleClick(QModelIndex)));
+  	  this, SLOT(doubleClick(QModelIndex)));
 
+  connect(tableView_->selectionModel(),
+  	  SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
+  	  SLOT(showPictures(const QItemSelection &, const QItemSelection &))
+  	  );
+  
+  textBrowser_ = new QTextBrowser();
+
+  textBrowser_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+  textBrowser_->setFixedWidth(420);
+  
   QHBoxLayout *topLayout = new QHBoxLayout;
   topLayout->addWidget(label1_);
   topLayout->addWidget(label2_);
   topLayout->addWidget(label3_);
   topLayout->addWidget(label4_);
 
+  QHBoxLayout *centerLayout = new QHBoxLayout;
+  centerLayout->addWidget(tableView_);
+  centerLayout->addWidget(textBrowser_);
+  
   QVBoxLayout *layout = new QVBoxLayout;
   layout->addLayout(topLayout);
-  layout->addWidget(tableView_);
+  layout->addLayout(centerLayout);
   // topLayout->addWidget(label_);
   // topLayout->addStretch();
   // topLayout->addWidget(messagesTable_);
@@ -174,7 +190,7 @@ void AlarmsWindow::doubleClick(const QModelIndex &index)
   QModelIndex ind = model->index(row, AlarmsRelTableModel::IsRead);
   model->setData(ind, model->data(ind).toInt() == 0 ? 1 : 0);
   model->submit();
-  tableView_->setCurrentIndex(index);
+  tableView_->selectRow(row);
 }
 
 bool AlarmsWindow::newEvent()
@@ -291,6 +307,55 @@ void AlarmsWindow::readMsg()
     data_.truncate(0);
   }
 }
+
+void AlarmsWindow::showPictures(const QItemSelection &selected,
+				const QItemSelection &/* deselected */)
+{
+  if(selected.size() == 0)
+    return;
+
+  QAbstractItemModel *model = tableView_->model();
+  QModelIndexList indexes = selected.indexes();
+  QString str = model->data(indexes[2]).toString();
+
+  if(!str.endsWith(".eml")) {
+    textBrowser_->setHtml("");
+    return;
+  }
+
+  QString page("<html>");
+  QDir dir("./images/" + str);
+
+  QFile file(dir.path() + "/mail.info");
+  QString msg("<PRE><H3>");
+  if(file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+
+    QTextStream in(&file);
+    while (!in.atEnd()) {
+      QString line = in.readLine();
+      msg += line + "<BR>";
+    }
+    msg+="</H3></PRE>";
+  }
+
+  page += msg;
+  QStringList filters;
+  foreach(QByteArray format, QImageReader::supportedImageFormats())
+    filters += "*." + format;
+
+  qint8 i = 0;
+  foreach(QString file, dir.entryList(filters, QDir::Files)) {
+    page += tr("<img src=\"%1\" width=176 height=144 />").arg(file);
+    if(i++ & 1)
+      page += "<BR>";
+  }
+  
+  page += "</html>";
+
+  textBrowser_->setSearchPaths(QStringList() << dir.path());
+  textBrowser_->setHtml(page);
+}
+
 
 void AlarmsWindow::showMessage()
 {
