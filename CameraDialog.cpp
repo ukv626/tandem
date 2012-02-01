@@ -97,50 +97,50 @@ bool CameraDialog::getStream()
 
 void CameraDialog::httpDone(bool error)
 {
-  if(error)
-    qDebug() << "Error: " << qPrintable(http_.errorString()) << "\n";
+  if(error && http_.error() != QHttp::Aborted)
+    qDebug() << "Error: " << qPrintable(http_.errorString());
   else
     qDebug() << "Finished.\n";
-
-  emit done();
 }
 
 void CameraDialog::httpReadyRead(const QHttpResponseHeader & resp)
 {
-  //Q_UNUSED(resp);
+  static const char new_lines_data[] = { 0x0D, 0x0A, 0x0D, 0x0A };
+  static const QByteArray new_lines = QByteArray::fromRawData(new_lines_data,
+							      sizeof(new_lines_data));
+  // static int i = 0;
   
   if(resp.statusCode() != 200)
-    qDebug() << "Error: StatusCode = " << resp.statusCode() << "\n";
+    QMessageBox::warning(0, "Error", tr("StatusCode = %1").arg(resp.statusCode()));
   else {
     QByteArray array = http_.readAll();
 
-     static const char new_lines_data[] = { 0x0D, 0x0A, 0x0D, 0x0A };
-     QByteArray new_lines = QByteArray::fromRawData(new_lines_data, sizeof(new_lines_data));
-
+    // QFile file(tr("./ukv%1.tmp").arg(++i));
+    // file.open(QIODevice::WriteOnly | QIODevice::Append);
+    // QDataStream out(&file);
+    // out << array;
+     
     int boundary_pos = array.indexOf(boundary_);
-    if(boundary_pos >= 0) {
-      // write2File(QString("boundary.raw"), array);
-      
-      int new_lines_pos = array.indexOf(new_lines);
-      
-      if(boundary_pos>0)
+    if(boundary_pos == -1)
+      image_.append(array);
+    else {
+      if(boundary_pos > 0)
 	image_.append(array.left(boundary_pos));
 
       QPixmap pixmap;
       pixmap.loadFromData(image_);
-      //label_->setPixmap(pixmap);
-
       imageWidget_->setImage(pixmap);
       image_.truncate(0);
-      
-      //std::cerr << "boundary found at " << boundary_pos << " " << new_lines_pos << " " << array.size() << "!!\n";
-      ++i_;
 
-      if(new_lines_pos+5 < array.size())
+      int new_lines_pos = array.indexOf(new_lines);
+      
+      // qDebug() << "boundary found at " << boundary_pos << " "
+      // 	       << new_lines_pos << " " << array.size();
+      
+      // если в этом же пакете после "--my-boundary" идет начало след. фотки
+      if(array.size() > new_lines_pos + 5)
 	image_.append(array.mid(new_lines_pos+4));
     }
-    else
-      image_.append(array);
   }
 
   if(stopFlag_)

@@ -29,7 +29,14 @@ int main(int argc, char *argv[])
     if(mainWin.isValid()) {
       mainWin.resize(900, 600);
       //mainWin.setWindowState(Qt::WindowMaximized);
-      mainWin.show();
+      /*
+      mainWin.setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
+      mainWin.resize( QApplication::desktop()->size() );
+      
+          mainWin.setFocusPolicy( Qt::StrongFocus );
+    mainWin.setAttribute(Qt::WA_QuitOnClose, true);
+    */
+      mainWin.show();//FullScreen();
 
       return app.exec();
     }

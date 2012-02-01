@@ -19,12 +19,13 @@ void AlarmsTableView::mouseDoubleClickEvent(QMouseEvent *event)
 }
 
 
-AlarmsRelTableModel::AlarmsRelTableModel(QObject *parent)
-  : QSqlRelationalTableModel(parent)
+AlarmsQueryModel::AlarmsQueryModel(QObject *parent)
+  : QSqlQueryModel(parent)
 {
+  refresh();
 }
 
-QVariant AlarmsRelTableModel::data(const QModelIndex &index, int role) const
+QVariant AlarmsQueryModel::data(const QModelIndex &index, int role) const
 {
   QVariant value = QSqlQueryModel::data(index, role);
   switch (role) {
@@ -65,6 +66,45 @@ QVariant AlarmsRelTableModel::data(const QModelIndex &index, int role) const
   return value;
 }
 
+bool AlarmsQueryModel::setData(const QModelIndex &index,
+		      const QVariant &value,
+		      int /* role */)
+{
+  if (index.column() != IsRead)
+    return false;
+
+  QModelIndex primaryKeyIndex = QSqlQueryModel::index(index.row(), 0);
+  int id = QSqlQueryModel::data(primaryKeyIndex).toInt();
+  bool ok;
+  QSqlQuery query;
+  if (index.column() == IsRead) {
+    query.prepare("update tb_logs set isRead = ? where id = ?");
+    query.addBindValue(value.toInt());
+    query.addBindValue(id);
+  }
+  ok = query.exec();
+  refresh();
+  return ok;
+}
+
+void AlarmsQueryModel::refresh()
+{
+  setQuery("SELECT l.id, l.date_, l.act, l.q, e.text, l.gg, l.zzz "
+	   ",l.isRead,e.type,e.isAlert "
+	   "FROM tb_logs l "
+	   ",tb_events e "
+	   "WHERE l.eee=e.id "
+	   "ORDER BY l.date_ DESC");
+
+  setHeaderData(Date,
+  		Qt::Horizontal, trUtf8("Дата"));
+  setHeaderData(Act, Qt::Horizontal, trUtf8("ACT"));
+  setHeaderData(Q, Qt::Horizontal, trUtf8("Q"));
+  setHeaderData(Eee, Qt::Horizontal, trUtf8("EEE"));
+  setHeaderData(Gg, Qt::Horizontal, trUtf8("GG"));
+  setHeaderData(Zzz, Qt::Horizontal, trUtf8("ZZZ"));
+}
+
 
 // -- AlarmsWindow -----------------------------------------------
 AlarmsWindow::AlarmsWindow(QWidget *parent)
@@ -88,21 +128,15 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   
   tableView_ = new AlarmsTableView(this);
 
-  tableModel_ = new AlarmsRelTableModel(this);
-  tableModel_->setTable("tb_logs");
-  tableModel_->setRelation(AlarmsRelTableModel::Eee,
-			   QSqlRelation("tb_events", "id", "text"));
-  tableModel_->setSort(AlarmsRelTableModel::Date, Qt::DescendingOrder);
-  //tableModel_->setEditStrategy(QSqlTableModel::OnManualSubmit);
-  tableModel_->select();
-
-  tableModel_->setHeaderData(AlarmsRelTableModel::Date,
-			     Qt::Horizontal, trUtf8("Дата"));
-  tableModel_->setHeaderData(AlarmsRelTableModel::Act, Qt::Horizontal, trUtf8("ACT"));
-  tableModel_->setHeaderData(AlarmsRelTableModel::Q, Qt::Horizontal, trUtf8("Q"));
-  tableModel_->setHeaderData(AlarmsRelTableModel::Eee, Qt::Horizontal, trUtf8("EEE"));
-  tableModel_->setHeaderData(AlarmsRelTableModel::Gg, Qt::Horizontal, trUtf8("GG"));
-  tableModel_->setHeaderData(AlarmsRelTableModel::Zzz, Qt::Horizontal, trUtf8("ZZZ"));
+  
+  tableModel_ = new AlarmsQueryModel(this);
+  
+  // tableModel_->setTable("tb_logs");
+  // tableModel_->setRelation(AlarmsRelTableModel::Eee,
+  // 			   QSqlRelation("tb_events", "id", "text"));
+  // tableModel_->setSort(AlarmsRelTableModel::Date, Qt::DescendingOrder);
+  // //tableModel_->setEditStrategy(QSqlTableModel::OnManualSubmit);
+  // tableModel_->select();
 
   tableView_->setModel(tableModel_);
   tableView_->setItemDelegate(new QSqlRelationalDelegate(tableView_));
@@ -111,9 +145,10 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   tableView_->setSelectionMode(QAbstractItemView::SingleSelection);
   tableView_->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
+  tableView_->setColumnHidden(AlarmsQueryModel::Id, true);
+  tableView_->setColumnHidden(AlarmsQueryModel::Q, true);
+  tableView_->setColumnHidden(AlarmsQueryModel::IsRead, true);
   
-  tableView_->setColumnHidden(AlarmsRelTableModel::IsRead, true);
-  tableView_->setColumnHidden(AlarmsRelTableModel::Id, true);
   // tableView->setColumnHidden(MoveDialog::Move_Qty, true);
   
   tableView_->verticalHeader()->hide();
@@ -187,7 +222,7 @@ void AlarmsWindow::doubleClick(const QModelIndex &index)
 {
   int row = index.row();
   QAbstractItemModel *model = tableView_->model();
-  QModelIndex ind = model->index(row, AlarmsRelTableModel::IsRead);
+  QModelIndex ind = model->index(row, AlarmsQueryModel::IsRead);
   model->setData(ind, model->data(ind).toInt() == 0 ? 1 : 0);
   model->submit();
   tableView_->selectRow(row);
@@ -221,25 +256,23 @@ bool AlarmsWindow::newEvent()
   data_.replace(3, 4, QString("%1").arg(data_.size() - 8, 4, 16,
 					QChar('0')).toUpper().toAscii());
 
-  quint8 row = 0;
-  QAbstractItemModel *model = tableView_->model();
-  model->insertRow(row);
-  model->setData(model->index(row, AlarmsRelTableModel::Date),
-  		 QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
-  model->setData(model->index(row, AlarmsRelTableModel::Act), msgAct);
-  
   qint8 q = msgOptTail.left(1).toInt();
-  model->setData(model->index(row, AlarmsRelTableModel::Q), q);
-  
   qint16 eee = msgOptTail.mid(1, 3).toInt();
-  model->setData(model->index(row, AlarmsRelTableModel::Eee),
-		 q != 3 ? eee : eee*(-1));
-  model->setData(model->index(row, AlarmsRelTableModel::Gg),
-		 msgOptTail.mid(5, 2).toInt());
-  model->setData(model->index(row, AlarmsRelTableModel::Zzz),
-		 msgOptTail.right(3).toInt());
-  model->submit();
   
+  QSqlQuery query;
+  query.prepare("INSERT INTO tb_logs VALUES(NULL,:Date,:Act,:Q,:Eee,:Gg,:Zzz,0)");
+  query.bindValue(":Date",
+		  QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+  query.bindValue(":Act", msgAct);
+  query.bindValue(":Q", q);
+  query.bindValue(":Eee", q != 3 ? eee : eee*(-1));
+  query.bindValue(":Gg", msgOptTail.mid(5, 2).toInt());
+  query.bindValue(":Zzz", msgOptTail.right(3).toInt());
+  if(query.exec())
+    tableModel_->refresh();
+  else
+    QMessageBox::critical(0, trUtf8("Ошибка"), query.lastError().text());
+    
   if(msgType == "NEW-MSG")
     emit newMailMsg(msgAct);
 
@@ -362,12 +395,12 @@ void AlarmsWindow::showMessage()
   QAbstractItemModel *model = tableView_->model();
 
   QString eee = model->data(model->index(tableView_->currentIndex().row(),
-					AlarmsRelTableModel::Eee),
+					AlarmsQueryModel::Eee),
 			   Qt::EditRole).toString();
 
   if(eee == trUtf8("НОВОЕ СООБЩЕНИЕ")) {
     QString str = model->data(model->index(tableView_->currentIndex().row(),
-					   AlarmsRelTableModel::Act)).toString();
+					   AlarmsQueryModel::Act)).toString();
 
     ImagesDialog *dlg = new ImagesDialog(str, this);
     dlg->setAttribute(Qt::WA_DeleteOnClose);

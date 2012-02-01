@@ -5,8 +5,6 @@
 #include <QHttp>
 #include <QUrl>
 #include <QByteArray>
-#include <QFile>
-
 
 class QLabel;
 class QComboBox;
@@ -21,8 +19,8 @@ class CameraDialog : public QDialog
 public:
     CameraDialog(QWidget *parent = 0);
 
-signals:
-  void done();
+/* signals: */
+/*   void done(); */
 
 private slots:
   bool getStream();
@@ -46,7 +44,6 @@ private:
     
     ImageWidget *imageWidget_;
     bool stopFlag_;
-    int i_;
 
     /* QPushButton *startButton; */
     /* QPushButton *stopButton; */

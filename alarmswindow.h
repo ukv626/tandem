@@ -4,7 +4,7 @@
 #include <QWidget>
 #include <QByteArray>
 #include <vector>
-#include <QSqlRelationalTableModel>
+#include <QSqlQueryModel>
 #include <QTableView>
 
 class QLabel;
@@ -53,14 +53,16 @@ class AlarmsTableView: public QTableView
 /* }; */
 
 
-class AlarmsRelTableModel : public QSqlRelationalTableModel {
+class AlarmsQueryModel : public QSqlQueryModel {
      Q_OBJECT
  public:
-  enum { Id, Date, Act, Q, Eee, Gg, Zzz,IsRead };
+  enum { Id, Date, Act, Q, Eee, Gg, Zzz, IsRead, Type, IsAlert };
   
-  AlarmsRelTableModel(QObject *parent = 0);
+  AlarmsQueryModel(QObject *parent = 0);
   QVariant data(const QModelIndex &index,
 		int role = Qt::DisplayRole) const;
+  bool setData(const QModelIndex &index, const QVariant &value, int /* role */);
+  void refresh();
 };
 
 
@@ -91,7 +93,7 @@ signals:
 private:
   void readEvents(const QString &filename);
   AlarmsTableView *tableView_;
-  AlarmsRelTableModel *tableModel_;
+  AlarmsQueryModel *tableModel_;
     
   QTcpServer *tcpServer_;
   QByteArray data_;
