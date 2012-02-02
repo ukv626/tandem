@@ -334,7 +334,7 @@ void AlarmsWindow::readMsg()
     if(newEvent())
       clientConnection->write(data_);
     else
-      qDebug() << data_;
+      qDebug() << "!newEvent(); " << data_;
     
     nextBlockSize = 0;
     data_.truncate(0);

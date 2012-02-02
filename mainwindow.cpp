@@ -3,7 +3,7 @@
 #include "mainwindow.h"
 #include "alarmswindow.h"
 // #include "requestsdialog.h"
-// #include "storagesdialog.h"
+#include "eventsdialog.h"
 #include "CameraDialog.h"
 #include "ImagesDialog.h"
 
@@ -131,18 +131,11 @@ void MainWindow::imagesDialog()
 }
 
 
-void MainWindow::storages()
+void MainWindow::events()
 {
-  // StoragesDialog dialog(this);
-  // dialog.exec();
+  EventsDialog dialog(this);
+  dialog.exec();
 }
-
-void MainWindow::pays()
-{
-  // PaysDialog dialog(this);
-  // dialog.exec();
-}
-
 
 void MainWindow::about()
 {
@@ -187,6 +180,10 @@ void MainWindow::createActions()
     imagesAction = new QAction(trUtf8("Фотографии"), this);
     imagesAction->setStatusTip(trUtf8("Фотографии"));
     connect(imagesAction, SIGNAL(triggered()), this, SLOT(imagesDialog()));
+
+    eventsAction = new QAction(trUtf8("Справочник событий"), this);
+    eventsAction->setStatusTip(trUtf8("Справочник событий"));
+    connect(eventsAction, SIGNAL(triggered()), this, SLOT(events()));
     
     // storagesAction = new QAction(trUtf8("&Склад"), this);
     // storagesAction->setStatusTip(trUtf8("Склад"));
@@ -216,7 +213,7 @@ void MainWindow::createMenus()
     toolsMenu = menuBar()->addMenu(trUtf8("&Инструменты"));
     toolsMenu->addAction(camerasAction);
     toolsMenu->addAction(imagesAction);
-    //toolsMenu->addAction(sortAction);
+    toolsMenu->addAction(eventsAction);
 
     //reportsMenu = menuBar()->addMenu(trUtf8("&Отчеты"));
     //optionsMenu->addAction(showGridAction);
