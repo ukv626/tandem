@@ -1,7 +1,7 @@
 #include <QtGui>
 #include <QtSql>
 
-#include "mainwindow.h"
+#include "MainWindow.h"
 
 bool createConnection()
 {

@@ -4,7 +4,7 @@
 #include <QTcpSocket>
 #include <algorithm>
 
-#include "alarmswindow.h"
+#include "AlarmsWindow.h"
 #include "ImagesDialog.h"
 
 AlarmsTableView::AlarmsTableView(QWidget *parent)

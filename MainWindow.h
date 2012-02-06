@@ -21,6 +21,7 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private slots:
+    void password();
     void cameras();
     void newMail(const QString& str);
     void imagesDialog();
@@ -54,6 +55,7 @@ private:
     //QToolBar *editToolBar;
 
     QAction *exitAction;
+    QAction *passwordAction;
     QAction *camerasAction;
     QAction *imagesAction;
     QAction *eventsAction; 
@@ -61,7 +63,7 @@ private:
     /* QAction *paysAction; */
     QAction *aboutAction;
     bool valid_;
-    bool canClose_;
+    bool isMightyUser_;
 };
 
 #endif

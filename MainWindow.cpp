@@ -1,15 +1,15 @@
 #include <QtGui>
 
-#include "mainwindow.h"
-#include "alarmswindow.h"
-// #include "requestsdialog.h"
-#include "eventsdialog.h"
+#include "MainWindow.h"
+#include "AlarmsWindow.h"
+#include "PasswordDialog.h"
+#include "EventsDialog.h"
 #include "CameraDialog.h"
 #include "ImagesDialog.h"
 
 MainWindow::MainWindow()
   : valid_(true),
-    canClose_(true)
+    isMightyUser_(false)
 {
     alarmsWindow_ = new AlarmsWindow;
     setCentralWidget(alarmsWindow_);
@@ -36,7 +36,7 @@ MainWindow::MainWindow()
 
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-  if(canClose_) {
+  if(isMightyUser_) {
     writeSettings();
     event->accept();
   }
@@ -73,6 +73,20 @@ void MainWindow::find()
     findDialog->activateWindow();
 }
 */
+
+void MainWindow::password()
+{
+  PasswordDialog dialog(this);
+  if(dialog.exec() == QDialog::Accepted) {
+    isMightyUser_ = true;
+  }
+  else
+    isMightyUser_ = false;
+
+  eventsAction->setEnabled(isMightyUser_);
+  passwordAction->setChecked(isMightyUser_);
+}
+
 
 void MainWindow::cameras()
 {
@@ -133,8 +147,10 @@ void MainWindow::imagesDialog()
 
 void MainWindow::events()
 {
-  EventsDialog dialog(this);
-  dialog.exec();
+  if(isMightyUser_) {
+    EventsDialog dialog(this);
+    dialog.exec();
+  }
 }
 
 void MainWindow::about()
@@ -171,6 +187,12 @@ void MainWindow::createActions()
     exitAction->setStatusTip(trUtf8("Выйти из программы"));
     connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
+    passwordAction = new QAction(trUtf8("Привелегированный режим"), this);
+    passwordAction->setStatusTip(trUtf8("Привелегированный режим"));
+    passwordAction->setCheckable(true);
+    passwordAction->setChecked(isMightyUser_);
+    connect(passwordAction, SIGNAL(triggered()), this, SLOT(password()));
+
     camerasAction = new QAction(trUtf8("Видеокамеры"), this);
     //limitsAction->setIcon(QIcon(":/images/find.png"));
     //findAction->setShortcut(QKeySequence::Find);
@@ -183,6 +205,7 @@ void MainWindow::createActions()
 
     eventsAction = new QAction(trUtf8("Справочник событий"), this);
     eventsAction->setStatusTip(trUtf8("Справочник событий"));
+    eventsAction->setEnabled(isMightyUser_);
     connect(eventsAction, SIGNAL(triggered()), this, SLOT(events()));
     
     // storagesAction = new QAction(trUtf8("&Склад"), this);
@@ -201,7 +224,8 @@ void MainWindow::createActions()
 void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(trUtf8("&Файл"));
-    //fileMenu->addSeparator();
+    fileMenu->addAction(passwordAction);
+    fileMenu->addSeparator();
     fileMenu->addAction(exitAction);
 
     editMenu = menuBar()->addMenu(trUtf8("&Редактирование"));

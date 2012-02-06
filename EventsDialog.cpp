@@ -1,7 +1,7 @@
 #include <QtGui>
 #include <QtSql>
 
-#include "eventsdialog.h"
+#include "EventsDialog.h"
 
 EventsRelModel::EventsRelModel(QObject *parent)
   : QSqlRelationalTableModel(parent)
