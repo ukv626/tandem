@@ -37,15 +37,21 @@ CameraDialog::CameraDialog(QWidget *parent)
   // stopButton = new QPushButton(tr("stop"));
   // closeButton = new QPushButton(tr("close"));
 
+
+  startButton_ = new QPushButton(trUtf8("Старт"));
+  stopButton_ = new QPushButton(trUtf8("Стоп"));
+  closeButton_ = new QPushButton(trUtf8("Закрыть"));
   
-  buttonBox_ = new QDialogButtonBox(QDialogButtonBox::Ok
-				   | QDialogButtonBox::Cancel);
-  // buttonBox->addButton(startButton, QDialogButtonBox::AcceptRole);
-  // buttonBox->addButton(stopButton, QDialogButtonBox::ActionRole);
-  // buttonBox->addButton(closeButton,QDialogButtonBox::RejectRole);
+  buttonBox_ = new QDialogButtonBox;
+  buttonBox_->addButton(startButton_, QDialogButtonBox::AcceptRole);
+  buttonBox_->addButton(stopButton_, QDialogButtonBox::RejectRole);
+  buttonBox_->addButton(closeButton_,QDialogButtonBox::RejectRole);
   
-  connect(buttonBox_, SIGNAL(accepted()), this, SLOT(start()));
-  connect(buttonBox_, SIGNAL(rejected()), this, SLOT(stop()));
+  // connect(buttonBox_, SIGNAL(accepted()), this, SLOT(start()));
+  // connect(buttonBox_, SIGNAL(rejected()), this, SLOT(stop()));
+  connect(startButton_, SIGNAL(clicked()), this, SLOT(start()));
+  connect(stopButton_, SIGNAL(clicked()), this, SLOT(stop()));
+  connect(closeButton_, SIGNAL(clicked()), this, SLOT(close()));
 
 
   QGridLayout *topLayout = new QGridLayout;
@@ -72,6 +78,15 @@ CameraDialog::CameraDialog(QWidget *parent)
   
   boundary_.append(QString("--myboundary"));
 }
+
+void CameraDialog::closeEvent(QCloseEvent *event)
+{
+  if(!stopFlag_)
+    stop();
+
+  event->accept();
+}
+
 
 void CameraDialog::start()
 {

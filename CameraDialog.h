@@ -19,6 +19,9 @@ class CameraDialog : public QDialog
 public:
     CameraDialog(QWidget *parent = 0);
 
+protected:
+    void closeEvent(QCloseEvent *event);
+
 /* signals: */
 /*   void done(); */
 
@@ -45,10 +48,9 @@ private:
     ImageWidget *imageWidget_;
     bool stopFlag_;
 
-    /* QPushButton *startButton; */
-    /* QPushButton *stopButton; */
-    /* QPushButton *closeButton; */
-    
+    QPushButton *startButton_;
+    QPushButton *stopButton_;
+    QPushButton *closeButton_;
     QDialogButtonBox *buttonBox_;
 };
 

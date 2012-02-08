@@ -1,7 +1,7 @@
 #include <QLabel>
 #include <QDialogButtonBox>
+#include <QPushButton>
 #include <QLineEdit>
-#include <QGridLayout>
 #include <QVBoxLayout>
 #include <QCryptographicHash>
 #include <QDebug>
@@ -15,8 +15,12 @@ PasswordDialog::PasswordDialog(QWidget *parent)
   label_ = new QLabel(trUtf8("Пароль"));
   label_->setBuddy(password_);
 
-  buttonBox_ = new QDialogButtonBox(QDialogButtonBox::Ok
-                                   | QDialogButtonBox::Cancel);
+  okButton_ = new QPushButton(trUtf8("ОК"));
+  cancelButton_ = new QPushButton(trUtf8("Отмена"));
+
+  buttonBox_ = new QDialogButtonBox;
+  buttonBox_->addButton(okButton_, QDialogButtonBox::AcceptRole);
+  buttonBox_->addButton(cancelButton_, QDialogButtonBox::RejectRole);
 
   connect(buttonBox_, SIGNAL(accepted()), this, SLOT(ok()));
   connect(buttonBox_, SIGNAL(rejected()), this, SLOT(reject()));
@@ -30,7 +34,7 @@ PasswordDialog::PasswordDialog(QWidget *parent)
   mainLayout->addWidget(buttonBox_);
   setLayout(mainLayout);
 
-  setWindowTitle(tr("PasswordDialog"));
+  setWindowTitle(trUtf8("Введите пароль"));
 }
 
 void PasswordDialog::ok()

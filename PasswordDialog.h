@@ -6,6 +6,7 @@
 class QLabel;
 class QLineEdit;
 class QDialogButtonBox;
+class QPushButton;
 
 class PasswordDialog : public QDialog
 {
@@ -22,6 +23,9 @@ private:
   QLineEdit *password_;
 
   QDialogButtonBox *buttonBox_;
+  QPushButton *okButton_;
+  QPushButton *cancelButton_;
+  
 };
 
 #endif
