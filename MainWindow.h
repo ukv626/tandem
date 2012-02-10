@@ -26,6 +26,7 @@ private slots:
     void newMail(const QString& str);
     void imagesDialog();
     void events();
+    void logs();
     /* void pays(); */
     void about();
     void updateStatusBar();
@@ -58,7 +59,8 @@ private:
     QAction *passwordAction;
     QAction *camerasAction;
     QAction *imagesAction;
-    QAction *eventsAction; 
+    QAction *eventsAction;
+    QAction *logsAction; 
     /* QAction *storagesAction; */
     /* QAction *paysAction; */
     QAction *aboutAction;

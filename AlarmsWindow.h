@@ -6,6 +6,7 @@
 #include <vector>
 #include <QSqlQueryModel>
 #include <QTableView>
+#include <QVector>
 
 class QLabel;
 class QTcpServer;
@@ -92,13 +93,15 @@ signals:
 
 private:
   void readEvents(const QString &filename);
+  QString getColorByType(int type);
+  
   AlarmsTableView *tableView_;
   AlarmsQueryModel *tableModel_;
     
   QTcpServer *tcpServer_;
   QByteArray data_;
   quint8 nextBlockSize;
-  QLabel *label1_, *label2_, *label3_, *label4_;
+  QVector<QLabel *> labels;
   QTextBrowser *textBrowser_;
   /* std::vector<Event> events_; */
   bool valid_;

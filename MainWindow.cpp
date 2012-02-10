@@ -2,6 +2,7 @@
 
 #include "MainWindow.h"
 #include "AlarmsWindow.h"
+#include "AlarmsLogDialog.h"
 #include "PasswordDialog.h"
 #include "EventsDialog.h"
 #include "CameraDialog.h"
@@ -9,7 +10,7 @@
 
 MainWindow::MainWindow()
   : valid_(true),
-    isMightyUser_(false)
+    isMightyUser_(true)
 {
     alarmsWindow_ = new AlarmsWindow;
     setCentralWidget(alarmsWindow_);
@@ -153,6 +154,14 @@ void MainWindow::events()
   }
 }
 
+void MainWindow::logs()
+{
+  if(isMightyUser_) {
+    AlarmsLogWindow dialog(this);
+    dialog.exec();
+  }
+}
+
 void MainWindow::about()
 {
     // QMessageBox::about(this, tr("About Spreadsheet"),
@@ -207,6 +216,12 @@ void MainWindow::createActions()
     eventsAction->setStatusTip(trUtf8("Справочник событий"));
     eventsAction->setEnabled(isMightyUser_);
     connect(eventsAction, SIGNAL(triggered()), this, SLOT(events()));
+
+    logsAction = new QAction(trUtf8("Журнал событий"), this);
+    logsAction->setStatusTip(trUtf8("Журнал событий за выбранный период"));
+    logsAction->setEnabled(isMightyUser_);
+    connect(logsAction, SIGNAL(triggered()), this, SLOT(logs()));
+
     
     // storagesAction = new QAction(trUtf8("&Склад"), this);
     // storagesAction->setStatusTip(trUtf8("Склад"));
@@ -238,6 +253,7 @@ void MainWindow::createMenus()
     toolsMenu->addAction(camerasAction);
     toolsMenu->addAction(imagesAction);
     toolsMenu->addAction(eventsAction);
+    toolsMenu->addAction(logsAction);
 
     //reportsMenu = menuBar()->addMenu(trUtf8("&Отчеты"));
     //optionsMenu->addAction(showGridAction);

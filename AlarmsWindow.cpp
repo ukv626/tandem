@@ -110,24 +110,32 @@ void AlarmsQueryModel::refresh()
 AlarmsWindow::AlarmsWindow(QWidget *parent)
   : QWidget(parent), nextBlockSize(0), valid_(true)
 {
-  label1_ = new QLabel(trUtf8("<H2>Пост 1</H2>"));
-  label1_->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  label1_->setStyleSheet("background-color: green; border: 2px solid grey");
+  QLabel *label = new QLabel(trUtf8("<H2>Пост 1</H2>"));
+  label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  label->setStyleSheet("background-color: lightGrey; border: 2px solid grey");
+  labels.append(label);
   
-  label2_ = new QLabel(trUtf8("<H2>Пост 2</H2>"));
-  label2_->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  label2_->setStyleSheet("background-color: green; border: 2px solid grey");
+  label = new QLabel(trUtf8("<H2>Пост 2</H2>"));
+  label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  label->setStyleSheet("background-color: lightGrey; border: 2px solid grey");
+  labels.append(label);
   
-  label3_ = new QLabel(trUtf8("<H2>Пост 3</H2>"));
-  label3_->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  label3_->setStyleSheet("background-color: red; border: 2px solid grey");
+  label = new QLabel(trUtf8("<H2>Пост 3</H2>"));
+  label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  label->setStyleSheet("background-color: lightGrey; border: 2px solid grey");
+  labels.append(label);
 
-  label4_ = new QLabel(trUtf8("<H2>Пост 4</H2>"));
-  label4_->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
-  label4_->setStyleSheet("background-color: yellow; border: 2px solid grey");
+  label = new QLabel(trUtf8("<H2>Пост 4</H2>"));
+  label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  label->setStyleSheet("background-color: lightGrey; border: 2px solid grey");
+  labels.append(label);
+
+  label = new QLabel(trUtf8("<H2>ВШ 530</H2>"));
+  label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
+  label->setStyleSheet("background-color: lightGrey; border: 2px solid grey");
+  labels.append(label);
   
   tableView_ = new AlarmsTableView(this);
-
   
   tableModel_ = new AlarmsQueryModel(this);
   
@@ -178,10 +186,11 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   textBrowser_->setFixedWidth(420);
   
   QHBoxLayout *topLayout = new QHBoxLayout;
-  topLayout->addWidget(label1_);
-  topLayout->addWidget(label2_);
-  topLayout->addWidget(label3_);
-  topLayout->addWidget(label4_);
+  topLayout->addWidget(labels.at(0));
+  topLayout->addWidget(labels.at(1));
+  topLayout->addWidget(labels.at(2));
+  topLayout->addWidget(labels.at(3));
+  topLayout->addWidget(labels.at(4));
 
   QHBoxLayout *centerLayout = new QHBoxLayout;
   centerLayout->addWidget(tableView_);
@@ -228,6 +237,23 @@ void AlarmsWindow::doubleClick(const QModelIndex &index)
   tableView_->selectRow(row);
 }
 
+QString AlarmsWindow::getColorByType(int type)
+{
+  QString color = "";
+  switch(type) {
+  case 0:
+    color = "green";
+    break;
+  case 1:
+    color = "yellow";
+    break;
+  case 2:
+    color = "red";
+    break;
+  }
+  return color;
+}
+
 bool AlarmsWindow::newEvent()
 {
   qDebug() << data_; //.mid(0,3).toHex().toUpper()
@@ -258,6 +284,7 @@ bool AlarmsWindow::newEvent()
 
   qint8 q = msgOptTail.left(1).toInt();
   qint16 eee = msgOptTail.mid(1, 3).toInt();
+  qint8 gg = msgOptTail.mid(5, 2).toInt();
   
   QSqlQuery query;
   query.prepare("INSERT INTO tb_logs VALUES(NULL,:Date,:Act,:Q,:Eee,:Gg,:Zzz,0)");
@@ -266,12 +293,23 @@ bool AlarmsWindow::newEvent()
   query.bindValue(":Act", msgAct);
   query.bindValue(":Q", q);
   query.bindValue(":Eee", q != 3 ? eee : eee*(-1));
-  query.bindValue(":Gg", msgOptTail.mid(5, 2).toInt());
+  query.bindValue(":Gg", gg);
   query.bindValue(":Zzz", msgOptTail.right(3).toInt());
-  if(query.exec())
-    tableModel_->refresh();
-  else
+  if(!query.exec())
     QMessageBox::critical(0, trUtf8("Ошибка"), query.lastError().text());
+  else {
+    // int row = tableView_->selectionModel()->selectedIndexes().first().row();
+    tableModel_->refresh();
+    tableView_->selectRow(0);
+
+    if(gg > 0 && gg <= labels.size()) {
+      QAbstractItemModel *model = tableView_->model();
+      int type = model->data(model->index(0, AlarmsQueryModel::Type)).toInt();
+    
+      labels.at(gg - 1)->setStyleSheet(tr("background-color: %1; "
+			"border: 2px solid grey").arg(getColorByType(type)));
+    }
+  } // if(query.exec())
     
   if(msgType == "NEW-MSG")
     emit newMailMsg(msgAct);
