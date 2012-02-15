@@ -6,7 +6,7 @@
 AlarmsLogQueryModel::AlarmsLogQueryModel(QObject *parent)
   : QSqlQueryModel(parent)
 {
-  refresh();
+  refresh(QDate::currentDate(), QDate::currentDate());
 }
 
 QVariant AlarmsLogQueryModel::data(const QModelIndex &index, int role) const
@@ -50,19 +50,22 @@ QVariant AlarmsLogQueryModel::data(const QModelIndex &index, int role) const
   return value;
 }
 
-void AlarmsLogQueryModel::refresh()
+void AlarmsLogQueryModel::refresh(const QDate& date1, const QDate& date2)
 {
-  setQuery("SELECT l.id, l.date_, l.act, l.q, e.text, l.gg, l.zzz "
+  QSqlQuery query;
+  query.prepare("SELECT l.id, l.date_, l.act, l.q, e.text, l.gg, l.zzz "
 	   ",l.isRead,e.type,e.isAlert "
 	   "FROM tb_logs l "
 	   ",tb_events e "
 	   "WHERE l.eee=e.id "
-	   // "AND DATE(l.date_)>=:date1 "
-	   // "AND DATE(l.date_)<=:date2 "
+	   "AND DATE(l.date_)>=:date1 "
+	   "AND DATE(l.date_)<=:date2 "
 	   "ORDER BY l.date_ DESC");
-  // bindValue(":date1", date1);
-  // bindValue(":date2", date2);
+  query.bindValue(":date1", date1);
+  query.bindValue(":date2", date2);
+  query.exec();
 
+  setQuery(query);
   setHeaderData(Date,
   		Qt::Horizontal, trUtf8("Дата"));
   setHeaderData(Act, Qt::Horizontal, trUtf8("ACT"));
@@ -74,7 +77,7 @@ void AlarmsLogQueryModel::refresh()
 
 
 // -- AlarmsWindow -----------------------------------------------
-AlarmsLogWindow::AlarmsLogWindow(QWidget *parent)
+AlarmsLogDialog::AlarmsLogDialog(QWidget *parent)
   : QDialog(parent)
 {
   date1Edit_ = new QDateEdit(QDate::currentDate());
@@ -88,6 +91,11 @@ AlarmsLogWindow::AlarmsLogWindow(QWidget *parent)
   date2Edit_->setDisplayFormat("dd.MM.yyyy");
   date2Label_ = new QLabel(trUtf8("Дата"));
   date2Label_->setBuddy(date2Edit_);
+
+  connect(date1Edit_, SIGNAL(dateChanged(const QDate&)), this,
+	  SLOT(date1Changed(const QDate&)));
+  connect(date2Edit_, SIGNAL(dateChanged(const QDate&)), this,
+	  SLOT(date2Changed(const QDate&)));
 
   tableView_ = new QTableView(this);
   
@@ -140,9 +148,20 @@ AlarmsLogWindow::AlarmsLogWindow(QWidget *parent)
   setFixedHeight(500);
 }
 
-AlarmsLogWindow::~AlarmsLogWindow()
+AlarmsLogDialog::~AlarmsLogDialog()
 {
   delete tableModel_;
 }
 
 
+void AlarmsLogDialog::date1Changed(const QDate &date)
+{
+  tableModel_->refresh(date, date2Edit_->date());
+  tableView_->selectRow(0);
+}
+
+void AlarmsLogDialog::date2Changed(const QDate &date)
+{
+  tableModel_->refresh(date1Edit_->date(), date);
+  tableView_->selectRow(0);
+}

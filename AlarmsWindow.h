@@ -83,9 +83,7 @@ public:
 private slots:
   void accept();
   void readMsg();
-  void showPictures(const QItemSelection &selected,
-		   const QItemSelection &deselected);
-  void showMessage();
+  void showPictures(const QModelIndex &current, const QModelIndex &previous);		  void showMessage();
   void doubleClick(const QModelIndex &index);
 
 signals:

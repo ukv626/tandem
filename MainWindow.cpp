@@ -117,7 +117,14 @@ void MainWindow::newMail(const QString& str)
 
   QProcess proc;
   QStringList arg;
-  arg << "-f" << tr("../../Boost/smtpServer/spool/%1").arg(str)
+
+  QSettings settings("tandem.conf", QSettings::IniFormat);
+  QString path2spool = settings.value("path2spool",
+				      "/var/spool/ss4lad").toString();
+  if(!path2spool.endsWith('/'))
+    path2spool.append('/');
+  
+  arg << "-f" <<  path2spool + str
       << "-d" << dir.path();
   proc.start("./mimeParser", arg);
   proc.waitForFinished();
@@ -157,7 +164,7 @@ void MainWindow::events()
 void MainWindow::logs()
 {
   if(isMightyUser_) {
-    AlarmsLogWindow dialog(this);
+    AlarmsLogDialog dialog(this);
     dialog.exec();
   }
 }

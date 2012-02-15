@@ -134,9 +134,12 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
   label->setStyleSheet("background-color: lightGrey; border: 2px solid grey");
   labels.append(label);
-  
+
+  textBrowser_ = new QTextBrowser();
+  textBrowser_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
+  textBrowser_->setFixedWidth(420);
+
   tableView_ = new AlarmsTableView(this);
-  
   tableModel_ = new AlarmsQueryModel(this);
   
   // tableModel_->setTable("tb_logs");
@@ -162,8 +165,8 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   tableView_->verticalHeader()->hide();
   tableView_->resizeColumnsToContents();
   tableView_->setAlternatingRowColors(true);
-  //tableView_->setCurrentIndex(tableView_->model()->index(0, 0));
-  tableView_->selectRow(0);
+  
+  // showPictures(tableModel_->index(0,0), tableModel_->index(0,0));
 
   QAction *showMessageAction = new QAction(trUtf8("Просмотр.."), this);
   //showMessageAction->setShortcut(tr("Ins"));
@@ -176,14 +179,10 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   	  this, SLOT(doubleClick(QModelIndex)));
 
   connect(tableView_->selectionModel(),
-  	  SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)),
-  	  SLOT(showPictures(const QItemSelection &, const QItemSelection &))
-  	  );
+  	  SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)),
+  	  SLOT(showPictures(const QModelIndex &, const QModelIndex &)));
   
-  textBrowser_ = new QTextBrowser();
-
-  textBrowser_->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
-  textBrowser_->setFixedWidth(420);
+  tableView_->selectRow(0);
   
   QHBoxLayout *topLayout = new QHBoxLayout;
   topLayout->addWidget(labels.at(0));
@@ -256,7 +255,7 @@ QString AlarmsWindow::getColorByType(int type)
 
 bool AlarmsWindow::newEvent()
 {
-  qDebug() << data_; //.mid(0,3).toHex().toUpper()
+  // qDebug() << data_; //.mid(0,3).toHex().toUpper()
   
   QString msgType = data_.mid(8, 7);    
   if(msgType != "ADM-CID" && msgType != "NEW-MSG") 
@@ -299,8 +298,9 @@ bool AlarmsWindow::newEvent()
     QMessageBox::critical(0, trUtf8("Ошибка"), query.lastError().text());
   else {
     // int row = tableView_->selectionModel()->selectedIndexes().first().row();
+    int row = tableView_->currentIndex().row();
     tableModel_->refresh();
-    tableView_->selectRow(0);
+    tableView_->selectRow(row + 1);
 
     if(gg > 0 && gg <= labels.size()) {
       QAbstractItemModel *model = tableView_->model();
@@ -319,7 +319,7 @@ bool AlarmsWindow::newEvent()
 
 void AlarmsWindow::accept()
 {
-  qDebug() << "accept()";
+  // qDebug() << "accept()";
   // QByteArray block;
   // QDataStream out(&block, QIODevice::WriteOnly);
   // out.setVersion(QDataStream::Qt_4_0);
@@ -342,7 +342,7 @@ void AlarmsWindow::accept()
 
 void AlarmsWindow::readMsg()
 {
-  qDebug() << "readMsg()";
+  // qDebug() << "readMsg()";
   QTcpSocket* clientConnection = (QTcpSocket *)sender();
 
   QByteArray dataTmp;
@@ -379,15 +379,14 @@ void AlarmsWindow::readMsg()
   }
 }
 
-void AlarmsWindow::showPictures(const QItemSelection &selected,
-				const QItemSelection &/* deselected */)
+void AlarmsWindow::showPictures(const QModelIndex &current,
+				const QModelIndex & /* previous */)
 {
-  if(selected.size() == 0)
+  if(current.row()<0)
     return;
-
+  
   QAbstractItemModel *model = tableView_->model();
-  QModelIndexList indexes = selected.indexes();
-  QString str = model->data(indexes[2]).toString();
+  QString str = model->data(model->index(current.row(), 2)).toString();
 
   if(!str.endsWith(".eml")) {
     textBrowser_->setHtml("");
@@ -422,7 +421,7 @@ void AlarmsWindow::showPictures(const QItemSelection &selected,
   }
   
   page += "</html>";
-
+  
   textBrowser_->setSearchPaths(QStringList() << dir.path());
   textBrowser_->setHtml(page);
 }
@@ -433,7 +432,7 @@ void AlarmsWindow::showMessage()
   QAbstractItemModel *model = tableView_->model();
 
   QString eee = model->data(model->index(tableView_->currentIndex().row(),
-					AlarmsQueryModel::Eee),
+					 AlarmsQueryModel::Eee),
 			   Qt::EditRole).toString();
 
   if(eee == trUtf8("НОВОЕ СООБЩЕНИЕ")) {

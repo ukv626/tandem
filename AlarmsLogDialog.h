@@ -16,18 +16,21 @@ class AlarmsLogQueryModel : public QSqlQueryModel {
   AlarmsLogQueryModel(QObject *parent = 0);
   QVariant data(const QModelIndex &index,
 		int role = Qt::DisplayRole) const;
-  void refresh();
+  void refresh(const QDate& date1, const QDate& date2);
 };
 
 
-// -- AlarmsLogWindow -----------------------------------------------
-class AlarmsLogWindow : public QDialog
+// -- AlarmsLogDialog -----------------------------------------------
+class AlarmsLogDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-  AlarmsLogWindow(QWidget *parent = 0);
-  ~AlarmsLogWindow();
+  AlarmsLogDialog(QWidget *parent = 0);
+  ~AlarmsLogDialog();
+  private slots:
+  void date1Changed(const QDate &date);
+  void date2Changed(const QDate &date);
   
 private:
   QLabel *date1Label_;

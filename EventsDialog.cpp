@@ -13,6 +13,7 @@ EventsRelModel::EventsRelModel(QObject *parent)
 
   setHeaderData(Type, Qt::Horizontal, trUtf8("Тип"));
   setHeaderData(IsAlert, Qt::Horizontal, trUtf8("IsAlert"));
+  setHeaderData(IsVisible, Qt::Horizontal, trUtf8("IsVisible"));
   setHeaderData(Text, Qt::Horizontal, trUtf8("Наименование"));
 }
 
