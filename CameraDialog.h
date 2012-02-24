@@ -2,56 +2,25 @@
 #define CAMERADIALOG_H
 
 #include <QDialog>
-#include <QHttp>
-#include <QUrl>
-#include <QByteArray>
+#include <QVector>
+#include <QFile>
 
-class QLabel;
-class QComboBox;
-class QSpinBox;
-class ImageWidget;
-class QDialogButtonBox;
+class FlexWatchCam;
 
 class CameraDialog : public QDialog
 {
     Q_OBJECT
 
 public:
-    CameraDialog(QWidget *parent = 0);
-
-protected:
-    void closeEvent(QCloseEvent *event);
-
-/* signals: */
-/*   void done(); */
-
-private slots:
-  bool getStream();
-  void httpDone(bool error);
-  void httpReadyRead(const QHttpResponseHeader & resp);
-  void start();
-  void stop();
-
+  CameraDialog(const QString &ip,
+	       int postNum,
+	       int camNum1, int camNum2,
+	       QWidget *parent = 0);
+    
 private:
-    QHttp http_;
-    QByteArray boundary_;
-    QByteArray image_;
-
-    QLabel *ipLabel_;
-    QLabel *cameraLabel_;
-    QLabel *fpsLabel_;
-    
-    QComboBox *ipComboBox_;
-    QComboBox *cameraComboBox_;
-    QSpinBox *fpsSpinBox_;
-    
-    ImageWidget *imageWidget_;
-    bool stopFlag_;
-
-    QPushButton *startButton_;
-    QPushButton *stopButton_;
-    QPushButton *closeButton_;
-    QDialogButtonBox *buttonBox_;
+  FlexWatchCam *flexWatchCam1_;
+  FlexWatchCam *flexWatchCam2_;
+  /* QFile file_; */
 };
 
 #endif

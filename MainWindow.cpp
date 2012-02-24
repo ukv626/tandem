@@ -29,7 +29,6 @@ MainWindow::MainWindow()
 
     //readSettings();
 
-    cameraDialog_ = 0;
     imagesDialog_ = 0;
 
     //setWindowIcon(QIcon(":/images/icon.png"));
@@ -89,15 +88,34 @@ void MainWindow::password()
 }
 
 
-void MainWindow::cameras()
+void MainWindow::post1Video()
 {
-  if(!cameraDialog_) {
-    cameraDialog_ = new CameraDialog(this);
-  }
-  cameraDialog_->show();
-  cameraDialog_->raise();
-  cameraDialog_->activateWindow();
+  QSettings settings("tandem.conf", QSettings::IniFormat);
+  CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
+			    1, 1, 3, this);
+  cameraDialog.exec();
 }
+
+void MainWindow::post2Video()
+{
+  QSettings settings("tandem.conf", QSettings::IniFormat);
+  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+			    2, 2, 4, this);
+  cameraDialog.exec();
+}
+
+void MainWindow::post3Video()
+{
+}
+
+void MainWindow::post4Video()
+{
+}
+
+void MainWindow::post5Video()
+{
+}
+
 
 void MainWindow::newMail(const QString& str)
 {
@@ -209,11 +227,35 @@ void MainWindow::createActions()
     passwordAction->setChecked(isMightyUser_);
     connect(passwordAction, SIGNAL(triggered()), this, SLOT(password()));
 
-    camerasAction = new QAction(trUtf8("Видеокамеры"), this);
+    post1Action = new QAction(trUtf8("Пост 1"), this);
     //limitsAction->setIcon(QIcon(":/images/find.png"));
     //findAction->setShortcut(QKeySequence::Find);
-    camerasAction->setStatusTip(trUtf8("Камера"));
-    connect(camerasAction, SIGNAL(triggered()), this, SLOT(cameras()));
+    post1Action->setStatusTip(trUtf8("Пост 1"));
+    connect(post1Action, SIGNAL(triggered()), this, SLOT(post1Video()));
+
+    post2Action = new QAction(trUtf8("Пост 2"), this);
+    //limitsAction->setIcon(QIcon(":/images/find.png"));
+    //findAction->setShortcut(QKeySequence::Find);
+    post2Action->setStatusTip(trUtf8("Пост 2"));
+    connect(post2Action, SIGNAL(triggered()), this, SLOT(post2Video()));
+
+    post3Action = new QAction(trUtf8("Пост 3"), this);
+    //limitsAction->setIcon(QIcon(":/images/find.png"));
+    //findAction->setShortcut(QKeySequence::Find);
+    post3Action->setStatusTip(trUtf8("Пост 3"));
+    connect(post3Action, SIGNAL(triggered()), this, SLOT(post3Video()));
+
+    post4Action = new QAction(trUtf8("Пост 4"), this);
+    //limitsAction->setIcon(QIcon(":/images/find.png"));
+    //findAction->setShortcut(QKeySequence::Find);
+    post4Action->setStatusTip(trUtf8("Пост 4"));
+    connect(post4Action, SIGNAL(triggered()), this, SLOT(post4Video()));
+
+    post5Action = new QAction(trUtf8("Пост 5"), this);
+    //limitsAction->setIcon(QIcon(":/images/find.png"));
+    //findAction->setShortcut(QKeySequence::Find);
+    post5Action->setStatusTip(trUtf8("Пост 5"));
+    connect(post5Action, SIGNAL(triggered()), this, SLOT(post5Video()));
 
     imagesAction = new QAction(trUtf8("Фотографии"), this);
     imagesAction->setStatusTip(trUtf8("Фотографии"));
@@ -250,14 +292,18 @@ void MainWindow::createMenus()
     fileMenu->addSeparator();
     fileMenu->addAction(exitAction);
 
-    editMenu = menuBar()->addMenu(trUtf8("&Редактирование"));
+    videoMenu = menuBar()->addMenu(trUtf8("&Видеонаблюдение"));
+    videoMenu->addAction(post1Action);
+    videoMenu->addAction(post2Action);
+    videoMenu->addAction(post3Action);
+    videoMenu->addAction(post4Action);
+    videoMenu->addAction(post5Action);
 
     //editMenu->addSeparator();
     
     //editMenu->addAction(goToCellAction);
 
     toolsMenu = menuBar()->addMenu(trUtf8("&Инструменты"));
-    toolsMenu->addAction(camerasAction);
     toolsMenu->addAction(imagesAction);
     toolsMenu->addAction(eventsAction);
     toolsMenu->addAction(logsAction);

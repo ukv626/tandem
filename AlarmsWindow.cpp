@@ -211,8 +211,10 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   // setFixedWidth(tableView_->horizontalHeader()->length()+50);
 
   tcpServer_ = new QTcpServer(this);
+  QSettings settings("tandem.conf", QSettings::IniFormat);
+  int port = settings.value("port", "45000").toInt();
 
-  if (!tcpServer_->listen(QHostAddress::Any, 45000)) {
+  if (!tcpServer_->listen(QHostAddress::Any, port)) {
     QMessageBox::critical(0, trUtf8("Ошибка"), tcpServer_->errorString());
     valid_ = false;
   }
@@ -281,9 +283,9 @@ bool AlarmsWindow::newEvent()
   data_.replace(3, 4, QString("%1").arg(data_.size() - 8, 4, 16,
 					QChar('0')).toUpper().toAscii());
 
-  qint8 q = msgOptTail.left(1).toInt();
+  qint8 q    = msgOptTail.left(1).toInt();
   qint16 eee = msgOptTail.mid(1, 3).toInt();
-  qint8 gg = msgOptTail.mid(5, 2).toInt();
+  qint8 gg   = msgOptTail.mid(5, 2).toInt();
   
   QSqlQuery query;
   query.prepare("INSERT INTO tb_logs VALUES(NULL,:Date,:Act,:Q,:Eee,:Gg,:Zzz,0)");

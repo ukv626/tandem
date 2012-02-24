@@ -3,8 +3,6 @@
 
 #include <QWidget>
 
-#include "ImageWidget.h"
-
 class QPixmap;
 
 class ImageWidget : public QWidget

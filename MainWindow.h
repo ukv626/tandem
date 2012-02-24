@@ -22,7 +22,11 @@ protected:
 
 private slots:
     void password();
-    void cameras();
+    void post1Video();
+    void post2Video();
+    void post3Video();
+    void post4Video();
+    void post5Video();
     void newMail(const QString& str);
     void imagesDialog();
     void events();
@@ -41,13 +45,12 @@ private:
     void writeSettings();
 
     AlarmsWindow *alarmsWindow_;
-    CameraDialog *cameraDialog_;
     ImagesDialog *imagesDialog_;
     QLabel *locationLabel;
     QLabel *formulaLabel;
 
     QMenu *fileMenu;
-    QMenu *editMenu;
+    QMenu *videoMenu;
     QMenu *toolsMenu;
     QMenu *reportsMenu;
     QMenu *helpMenu;
@@ -57,7 +60,11 @@ private:
 
     QAction *exitAction;
     QAction *passwordAction;
-    QAction *camerasAction;
+    QAction *post1Action;
+    QAction *post2Action;
+    QAction *post3Action;
+    QAction *post4Action;
+    QAction *post5Action;
     QAction *imagesAction;
     QAction *eventsAction;
     QAction *logsAction; 
