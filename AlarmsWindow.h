@@ -91,7 +91,7 @@ signals:
 
 private:
   void readEvents(const QString &filename);
-  QString getColorByType(int type);
+  /* QString getColorByType(int type); */
   
   AlarmsTableView *tableView_;
   AlarmsQueryModel *tableModel_;

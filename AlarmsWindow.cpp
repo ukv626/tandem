@@ -36,6 +36,10 @@ QVariant AlarmsQueryModel::data(const QModelIndex &index, int role) const
     }
     else
       return value;
+    
+  case Qt::TextColorRole:  //BackgroundColorRole
+    return qVariantFromValue(QColor(index.sibling(index.row(), Type).data(Qt::DisplayRole).toString()));
+
 
   case Qt::DisplayRole:
     // if (index.column() == Date)
@@ -90,10 +94,12 @@ bool AlarmsQueryModel::setData(const QModelIndex &index,
 void AlarmsQueryModel::refresh()
 {
   setQuery("SELECT l.id, l.date_, l.act, l.q, e.text, l.gg, l.zzz "
-	   ",l.isRead,e.type,e.isAlert "
+	   ",l.isRead,et.text,e.isAlert "
 	   "FROM tb_logs l "
 	   ",tb_events e "
+	   ",tb_eventsType et "
 	   "WHERE l.eee=e.id "
+	   "AND e.type=et.id "
 	   "ORDER BY l.date_ DESC");
 
   setHeaderData(Date,
@@ -159,6 +165,9 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   tableView_->setColumnHidden(AlarmsQueryModel::Id, true);
   tableView_->setColumnHidden(AlarmsQueryModel::Q, true);
   tableView_->setColumnHidden(AlarmsQueryModel::IsRead, true);
+  tableView_->setColumnHidden(AlarmsQueryModel::Type, true);
+  tableView_->setColumnHidden(AlarmsQueryModel::IsAlert, true);
+  
   
   // tableView->setColumnHidden(MoveDialog::Move_Qty, true);
   
@@ -238,22 +247,25 @@ void AlarmsWindow::doubleClick(const QModelIndex &index)
   tableView_->selectRow(row);
 }
 
-QString AlarmsWindow::getColorByType(int type)
-{
-  QString color = "";
-  switch(type) {
-  case 0:
-    color = "green";
-    break;
-  case 1:
-    color = "yellow";
-    break;
-  case 2:
-    color = "red";
-    break;
-  }
-  return color;
-}
+// QString AlarmsWindow::getColorByType(int type)
+// {
+//   QString color = "";
+//   switch(type) {
+//   case 0:
+//     color = "green";
+//     break;
+//   case 1:
+//     color = "yellow";
+//     break;
+//   case 2:
+//     color = "red";
+//     break;
+//   case 3:
+//     color = "grey";
+//     break;
+//   }
+//   return color;
+// }
 
 bool AlarmsWindow::newEvent()
 {
@@ -306,10 +318,10 @@ bool AlarmsWindow::newEvent()
 
     if(gg > 0 && gg <= labels.size()) {
       QAbstractItemModel *model = tableView_->model();
-      int type = model->data(model->index(0, AlarmsQueryModel::Type)).toInt();
+      QString type = model->data(model->index(0, AlarmsQueryModel::Type)).toString();
     
       labels.at(gg - 1)->setStyleSheet(tr("background-color: %1; "
-			"border: 2px solid grey").arg(getColorByType(type)));
+			"border: 2px solid grey").arg(type));
     }
   } // if(query.exec())
     

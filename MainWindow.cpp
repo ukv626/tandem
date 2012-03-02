@@ -83,7 +83,9 @@ void MainWindow::password()
   else
     isMightyUser_ = false;
 
+  updateStatusBar();
   eventsAction->setEnabled(isMightyUser_);
+  logsAction->setEnabled(isMightyUser_);
   passwordAction->setChecked(isMightyUser_);
 }
 
@@ -99,21 +101,33 @@ void MainWindow::post1Video()
 void MainWindow::post2Video()
 {
   QSettings settings("tandem.conf", QSettings::IniFormat);
-  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+  CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
 			    2, 2, 4, this);
   cameraDialog.exec();
 }
 
 void MainWindow::post3Video()
 {
+  QSettings settings("tandem.conf", QSettings::IniFormat);
+  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+			    3, 1, 3, this);
+  cameraDialog.exec();
 }
 
 void MainWindow::post4Video()
 {
+  QSettings settings("tandem.conf", QSettings::IniFormat);
+  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+			    4, 2, 4, this);
+  cameraDialog.exec();
 }
 
 void MainWindow::post5Video()
 {
+  QSettings settings("tandem.conf", QSettings::IniFormat);
+  CameraDialog cameraDialog(settings.value("camera3", "127.0.0.1").toString(),
+			    5, 1, 3, this);
+  cameraDialog.exec();
 }
 
 
@@ -189,19 +203,19 @@ void MainWindow::logs()
 
 void MainWindow::about()
 {
-    // QMessageBox::about(this, tr("About Spreadsheet"),
-    //         tr("<h2>Spreadsheet 1.1</h2>"
-    //            "<p>Copyright &copy; 2008 Software Inc."
-    //            "<p>Spreadsheet is a small application that "
-    //            "demonstrates QAction, QMainWindow, QMenuBar, "
-    //            "QStatusBar, QTableWidget, QToolBar, and many other "
-    //            "Qt classes."));
+    QMessageBox::about(this, trUtf8("О программе"),
+            trUtf8("<h2>ARM 1.1</h2>"
+               "<p>Copyright &copy; 2012 ЗАО \"Тандем\""
+               "<p>ARM is a application that ..."));
 }
 
 
 void MainWindow::updateStatusBar()
 {
-  locationLabel->setText(tr(""));
+  if(isMightyUser_)
+    locationLabel->setText(trUtf8("Привелегированный режим"));
+  else
+    locationLabel->setText(tr(""));
   formulaLabel->setText(tr(""));
 }
 
@@ -227,39 +241,39 @@ void MainWindow::createActions()
     passwordAction->setChecked(isMightyUser_);
     connect(passwordAction, SIGNAL(triggered()), this, SLOT(password()));
 
-    post1Action = new QAction(trUtf8("Пост 1"), this);
+    post1Action = new QAction(trUtf8("Пост &1"), this);
     //limitsAction->setIcon(QIcon(":/images/find.png"));
-    //findAction->setShortcut(QKeySequence::Find);
+    post1Action->setShortcut(Qt::Key_F1);
     post1Action->setStatusTip(trUtf8("Пост 1"));
     connect(post1Action, SIGNAL(triggered()), this, SLOT(post1Video()));
 
-    post2Action = new QAction(trUtf8("Пост 2"), this);
+    post2Action = new QAction(trUtf8("Пост &2"), this);
     //limitsAction->setIcon(QIcon(":/images/find.png"));
-    //findAction->setShortcut(QKeySequence::Find);
+    post2Action->setShortcut(Qt::Key_F2);
     post2Action->setStatusTip(trUtf8("Пост 2"));
     connect(post2Action, SIGNAL(triggered()), this, SLOT(post2Video()));
 
     post3Action = new QAction(trUtf8("Пост 3"), this);
     //limitsAction->setIcon(QIcon(":/images/find.png"));
-    //findAction->setShortcut(QKeySequence::Find);
+    post3Action->setShortcut(Qt::Key_F3);
     post3Action->setStatusTip(trUtf8("Пост 3"));
     connect(post3Action, SIGNAL(triggered()), this, SLOT(post3Video()));
 
     post4Action = new QAction(trUtf8("Пост 4"), this);
     //limitsAction->setIcon(QIcon(":/images/find.png"));
-    //findAction->setShortcut(QKeySequence::Find);
+    post4Action->setShortcut(Qt::Key_F4);
     post4Action->setStatusTip(trUtf8("Пост 4"));
     connect(post4Action, SIGNAL(triggered()), this, SLOT(post4Video()));
 
     post5Action = new QAction(trUtf8("Пост 5"), this);
     //limitsAction->setIcon(QIcon(":/images/find.png"));
-    //findAction->setShortcut(QKeySequence::Find);
+    post5Action->setShortcut(Qt::Key_F5);
     post5Action->setStatusTip(trUtf8("Пост 5"));
     connect(post5Action, SIGNAL(triggered()), this, SLOT(post5Video()));
 
-    imagesAction = new QAction(trUtf8("Фотографии"), this);
-    imagesAction->setStatusTip(trUtf8("Фотографии"));
-    connect(imagesAction, SIGNAL(triggered()), this, SLOT(imagesDialog()));
+    // imagesAction = new QAction(trUtf8("Фотографии"), this);
+    // imagesAction->setStatusTip(trUtf8("Фотографии"));
+    // connect(imagesAction, SIGNAL(triggered()), this, SLOT(imagesDialog()));
 
     eventsAction = new QAction(trUtf8("Справочник событий"), this);
     eventsAction->setStatusTip(trUtf8("Справочник событий"));
@@ -280,8 +294,8 @@ void MainWindow::createActions()
     // paysAction->setStatusTip(trUtf8("Список платежей"));
     // connect(paysAction, SIGNAL(triggered()), this, SLOT(pays()));
 
-    aboutAction = new QAction(tr("&About"), this);
-    aboutAction->setStatusTip(tr("Show the application's About box"));
+    aboutAction = new QAction(trUtf8("&О программе"), this);
+    // aboutAction->setStatusTip(trUtf8("Show the application's About box"));
     connect(aboutAction, SIGNAL(triggered()), this, SLOT(about()));
 }
 
@@ -304,7 +318,7 @@ void MainWindow::createMenus()
     //editMenu->addAction(goToCellAction);
 
     toolsMenu = menuBar()->addMenu(trUtf8("&Инструменты"));
-    toolsMenu->addAction(imagesAction);
+    // toolsMenu->addAction(imagesAction);
     toolsMenu->addAction(eventsAction);
     toolsMenu->addAction(logsAction);
 

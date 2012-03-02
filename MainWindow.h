@@ -65,7 +65,7 @@ private:
     QAction *post3Action;
     QAction *post4Action;
     QAction *post5Action;
-    QAction *imagesAction;
+    /* QAction *imagesAction; */
     QAction *eventsAction;
     QAction *logsAction; 
     /* QAction *storagesAction; */

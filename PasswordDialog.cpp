@@ -12,6 +12,7 @@ PasswordDialog::PasswordDialog(QWidget *parent)
   : QDialog(parent)
 {
   password_ = new QLineEdit;
+  password_->setEchoMode(QLineEdit::Password);
   label_ = new QLabel(trUtf8("Пароль"));
   label_->setBuddy(password_);
 

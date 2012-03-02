@@ -18,7 +18,8 @@ CameraDialog::CameraDialog(const QString &ip,
   setLayout(layout);
 
   setWindowTitle(trUtf8("Видеонаблюдение: Пост %1").arg(postNum));
-  //setFixedWidth(sizeHint().width());
+  setFixedWidth(sizeHint().width());
+  setFixedHeight(sizeHint().height());
 }
 
 

@@ -14,9 +14,11 @@ FlexWatchCam::FlexWatchCam(const QString &ip, int camNum, QWidget *parent)
 
   
   boundary_.append(QString("--myboundary"));
+  QSettings settings("tandem.conf", QSettings::IniFormat);
+  int fps = settings.value("fps", "30").toInt();
 
   http_.setHost(ip);
-  http_.get(QString("/cgi-bin/fwstream.cgi?FwModId=0&AppKey=0x0450f000&PortId=%1&PauseTime=%2&FwCgiVer=0x0001\r\n\r\n").arg(camNum-1).arg(100 / 30));
+  http_.get(QString("/cgi-bin/fwstream.cgi?FwModId=0&AppKey=0x0450f000&PortId=%1&PauseTime=%2&FwCgiVer=0x0001\r\n\r\n").arg(camNum-1).arg(100 / fps));
   http_.close();
 }
 
