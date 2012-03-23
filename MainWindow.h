@@ -33,6 +33,7 @@ private slots:
     void logs();
     /* void pays(); */
     void about();
+    void settings();
     void updateStatusBar();
 
 private:
@@ -67,7 +68,8 @@ private:
     QAction *post5Action;
     /* QAction *imagesAction; */
     QAction *eventsAction;
-    QAction *logsAction; 
+    QAction *logsAction;
+    QAction *settingsAction; 
     /* QAction *storagesAction; */
     /* QAction *paysAction; */
     QAction *aboutAction;

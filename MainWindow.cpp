@@ -7,6 +7,7 @@
 #include "EventsDialog.h"
 #include "CameraDialog.h"
 #include "ImagesDialog.h"
+#include "SettingsDialog.h"
 
 MainWindow::MainWindow()
   : valid_(true),
@@ -40,17 +41,8 @@ void MainWindow::closeEvent(QCloseEvent *event)
     writeSettings();
     event->accept();
   }
-  else {
-    int r = QMessageBox::warning(this, trUtf8("Подтверждение"),
-        trUtf8("Действительно выйти?"),
-        QMessageBox::Yes,
-        QMessageBox::No | QMessageBox::Default | QMessageBox::Escape);
-
-  if (r == QMessageBox::Yes)
-    event->accept();
-  else 
+  else
     event->ignore();
-  }
 }
 
 /*
@@ -84,6 +76,8 @@ void MainWindow::password()
     isMightyUser_ = false;
 
   updateStatusBar();
+  settingsAction->setEnabled(isMightyUser_);
+  exitAction->setEnabled(isMightyUser_);
   eventsAction->setEnabled(isMightyUser_);
   logsAction->setEnabled(isMightyUser_);
   passwordAction->setChecked(isMightyUser_);
@@ -92,7 +86,7 @@ void MainWindow::password()
 
 void MainWindow::post1Video()
 {
-  QSettings settings("tandem.conf", QSettings::IniFormat);
+  QSettings settings("./tandem.conf", QSettings::IniFormat);
   CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
 			    1, 1, 3, this);
   cameraDialog.exec();
@@ -100,7 +94,7 @@ void MainWindow::post1Video()
 
 void MainWindow::post2Video()
 {
-  QSettings settings("tandem.conf", QSettings::IniFormat);
+  QSettings settings("./tandem.conf", QSettings::IniFormat);
   CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
 			    2, 2, 4, this);
   cameraDialog.exec();
@@ -108,7 +102,7 @@ void MainWindow::post2Video()
 
 void MainWindow::post3Video()
 {
-  QSettings settings("tandem.conf", QSettings::IniFormat);
+  QSettings settings("./tandem.conf", QSettings::IniFormat);
   CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
 			    3, 1, 3, this);
   cameraDialog.exec();
@@ -116,7 +110,7 @@ void MainWindow::post3Video()
 
 void MainWindow::post4Video()
 {
-  QSettings settings("tandem.conf", QSettings::IniFormat);
+  QSettings settings("./tandem.conf", QSettings::IniFormat);
   CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
 			    4, 2, 4, this);
   cameraDialog.exec();
@@ -124,7 +118,7 @@ void MainWindow::post4Video()
 
 void MainWindow::post5Video()
 {
-  QSettings settings("tandem.conf", QSettings::IniFormat);
+  QSettings settings("./tandem.conf", QSettings::IniFormat);
   CameraDialog cameraDialog(settings.value("camera3", "127.0.0.1").toString(),
 			    5, 1, 3, this);
   cameraDialog.exec();
@@ -150,7 +144,7 @@ void MainWindow::newMail(const QString& str)
   QProcess proc;
   QStringList arg;
 
-  QSettings settings("tandem.conf", QSettings::IniFormat);
+  QSettings settings("./tandem.conf", QSettings::IniFormat);
   QString path2spool = settings.value("path2spool",
 				      "/var/spool/ss4lad").toString();
   if(!path2spool.endsWith('/'))
@@ -158,7 +152,7 @@ void MainWindow::newMail(const QString& str)
   
   arg << "-f" <<  path2spool + str
       << "-d" << dir.path();
-  proc.start("./mimeParser", arg);
+  proc.start("/usr/local/bin/mimeParser", arg);
   proc.waitForFinished();
   
   ImagesDialog *dlg = new ImagesDialog(str, this);
@@ -204,9 +198,9 @@ void MainWindow::logs()
 void MainWindow::about()
 {
     QMessageBox::about(this, trUtf8("О программе"),
-            trUtf8("<h2>ARM 1.1</h2>"
-               "<p>Copyright &copy; 2012 ЗАО \"Тандем\""
-               "<p>ARM is a application that ..."));
+            trUtf8("<h2>Тандем 1.1</h2>"
+               "<p>Copyright &copy; 2012 ООО \"РиЛФор Инжиниринг\""
+               "<p>Мониторинг охранной системы<br>на базы оборудования компании \"Риэлта\""));
 }
 
 
@@ -218,6 +212,15 @@ void MainWindow::updateStatusBar()
     locationLabel->setText(tr(""));
   formulaLabel->setText(tr(""));
 }
+
+void MainWindow::settings()
+{
+  if(isMightyUser_) {
+    SettingsDialog dialog(this);
+    dialog.exec();
+  }
+}
+
 
 /*
 void MainWindow::spreadsheetModified()
@@ -233,6 +236,7 @@ void MainWindow::createActions()
     exitAction = new QAction(trUtf8("Выход"), this);
     exitAction->setShortcut(tr("Ctrl+Q"));
     exitAction->setStatusTip(trUtf8("Выйти из программы"));
+    exitAction->setEnabled(isMightyUser_);
     connect(exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
     passwordAction = new QAction(trUtf8("Привелегированный режим"), this);
@@ -285,6 +289,11 @@ void MainWindow::createActions()
     logsAction->setEnabled(isMightyUser_);
     connect(logsAction, SIGNAL(triggered()), this, SLOT(logs()));
 
+    settingsAction = new QAction(trUtf8("Настройки"), this);
+    settingsAction->setStatusTip(trUtf8("Основные настройки приложения"));
+    settingsAction->setEnabled(isMightyUser_);
+    connect(settingsAction, SIGNAL(triggered()), this, SLOT(settings()));
+
     
     // storagesAction = new QAction(trUtf8("&Склад"), this);
     // storagesAction->setStatusTip(trUtf8("Склад"));
@@ -302,6 +311,7 @@ void MainWindow::createActions()
 void MainWindow::createMenus()
 {
     fileMenu = menuBar()->addMenu(trUtf8("&Файл"));
+    fileMenu->addAction(settingsAction);
     fileMenu->addAction(passwordAction);
     fileMenu->addSeparator();
     fileMenu->addAction(exitAction);

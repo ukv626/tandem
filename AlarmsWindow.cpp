@@ -104,17 +104,17 @@ void AlarmsQueryModel::refresh()
 
   setHeaderData(Date,
   		Qt::Horizontal, trUtf8("Дата"));
-  setHeaderData(Act, Qt::Horizontal, trUtf8("ACT"));
+  setHeaderData(Act, Qt::Horizontal, trUtf8("Объект"));
   setHeaderData(Q, Qt::Horizontal, trUtf8("Q"));
-  setHeaderData(Eee, Qt::Horizontal, trUtf8("EEE"));
-  setHeaderData(Gg, Qt::Horizontal, trUtf8("GG"));
-  setHeaderData(Zzz, Qt::Horizontal, trUtf8("ZZZ"));
+  setHeaderData(Eee, Qt::Horizontal, trUtf8("Сообщение"));
+  setHeaderData(Gg, Qt::Horizontal, trUtf8("Пост"));
+  setHeaderData(Zzz, Qt::Horizontal, trUtf8("Шлейф"));
 }
 
 
 // -- AlarmsWindow -----------------------------------------------
 AlarmsWindow::AlarmsWindow(QWidget *parent)
-  : QWidget(parent), nextBlockSize(0), valid_(true)
+  : QWidget(parent), nextBlockSize(0), valid_(false)
 {
   QLabel *label = new QLabel(trUtf8("<H2>Пост 1</H2>"));
   label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
@@ -219,22 +219,56 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   setWindowTitle(tr("Alarms"));
   // setFixedWidth(tableView_->horizontalHeader()->length()+50);
 
-  tcpServer_ = new QTcpServer(this);
-  QSettings settings("tandem.conf", QSettings::IniFormat);
-  int port = settings.value("port", "45000").toInt();
+  if(checkLicense()) {
+    tcpServer_ = new QTcpServer(this);
+    QSettings settings("./tandem.conf", QSettings::IniFormat);
+    int port = settings.value("port", "45000").toInt();
 
-  if (!tcpServer_->listen(QHostAddress::Any, port)) {
-    QMessageBox::critical(0, trUtf8("Ошибка"), tcpServer_->errorString());
-    valid_ = false;
+    if (!tcpServer_->listen(QHostAddress::Any, port))
+      QMessageBox::critical(0, trUtf8("Ошибка"), tcpServer_->errorString());
+    else {
+      connect(tcpServer_, SIGNAL(newConnection()), this, SLOT(accept()));
+      valid_ = true;
+    }
   }
-  else
-    connect(tcpServer_, SIGNAL(newConnection()), this, SLOT(accept()));
 }
 
 AlarmsWindow::~AlarmsWindow()
 {
   delete tableModel_;
   delete tcpServer_;
+}
+
+bool AlarmsWindow::checkLicense()
+{
+  bool ok2start(false);
+  QDir dir("/proc/scsi/usb-storage/");
+  QStringList filters("*");
+
+  QByteArray origHashData;
+  QFile origFile("./license.txt");
+  if (origFile.open(QIODevice::ReadOnly))
+    origHashData = origFile.readAll();
+  origFile.close();
+
+  foreach(QString filename, dir.entryList(filters, QDir::Files)) {
+    QFile file(dir.path() + "/" + filename);
+      
+    if (file.open(QIODevice::ReadOnly)) {
+      QByteArray fileData = file.readLine();
+      fileData = file.readAll();
+
+      QByteArray hashData = QCryptographicHash::hash(fileData,
+						     QCryptographicHash::Md5);
+      if(hashData.toHex() == origHashData)
+	ok2start = true;
+    }
+  }
+
+  if(!ok2start)
+    QMessageBox::critical(0, trUtf8("Ошибка"), trUtf8("Неверный ключ!!"));
+
+  return ok2start;
 }
 
 void AlarmsWindow::doubleClick(const QModelIndex &index)

@@ -19,26 +19,28 @@ bool createConnection()
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+  QApplication app(argc, argv);
+  
+  QSettings settings("/etc/tandem.conf", QSettings::IniFormat);
+  QDir::setCurrent(settings.value("dir", "./").toString());
 
-    if (!createConnection())
-      return 1;
+  if (!createConnection())
+    return 1;
 
-
-    MainWindow mainWin;
-    if(mainWin.isValid()) {
-      mainWin.resize(900, 600);
-      //mainWin.setWindowState(Qt::WindowMaximized);
-      /*
-      mainWin.setWindowFlags(Qt::FramelessWindowHint | Qt::Tool | Qt::WindowStaysOnTopHint);
-      mainWin.resize( QApplication::desktop()->size() );
+  MainWindow mainWin;
+  if(mainWin.isValid()) {
+    //mainWin.resize(900, 600);
+    // mainWin.setWindowState(Qt::WindowMaximized);
+    
+      // mainWin.setWindowFlags(Qt::FramelessWindowHint |
+      // 			     Qt::Tool |
+      // 			     Qt::WindowStaysOnTopHint);
+      // mainWin.resize(QApplication::desktop()->size());
       
-          mainWin.setFocusPolicy( Qt::StrongFocus );
-    mainWin.setAttribute(Qt::WA_QuitOnClose, true);
-    */
-      mainWin.show();//FullScreen();
-
-      return app.exec();
-    }
-    return -1;
+      // mainWin.setFocusPolicy( Qt::StrongFocus );
+      // mainWin.setAttribute(Qt::WA_QuitOnClose, true);
+    mainWin.showFullScreen();
+    return app.exec();
+  }
+  return -1;
 }

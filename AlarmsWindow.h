@@ -91,6 +91,7 @@ signals:
 
 private:
   void readEvents(const QString &filename);
+  bool checkLicense();
   /* QString getColorByType(int type); */
   
   AlarmsTableView *tableView_;

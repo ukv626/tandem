@@ -73,6 +73,7 @@ void AlarmsLogQueryModel::refresh(const QDate& date1, const QDate& date2)
   setHeaderData(Eee, Qt::Horizontal, trUtf8("EEE"));
   setHeaderData(Gg, Qt::Horizontal, trUtf8("GG"));
   setHeaderData(Zzz, Qt::Horizontal, trUtf8("ZZZ"));
+  setHeaderData(Type, Qt::Horizontal, trUtf8("Type"));
 }
 
 
@@ -111,11 +112,22 @@ AlarmsLogDialog::AlarmsLogDialog(QWidget *parent)
   tableView_->setColumnHidden(AlarmsLogQueryModel::Id, true);
   tableView_->setColumnHidden(AlarmsLogQueryModel::Q, true);
   tableView_->setColumnHidden(AlarmsLogQueryModel::IsRead, true);
+  tableView_->setColumnHidden(AlarmsLogQueryModel::IsAlert, true);
   
   // tableView->setColumnHidden(MoveDialog::Move_Qty, true);
   
   tableView_->verticalHeader()->hide();
   tableView_->resizeColumnsToContents();
+  tableView_->setColumnWidth(AlarmsLogQueryModel::Date, 160);
+  tableView_->setColumnWidth(AlarmsLogQueryModel::Act, 95);
+  tableView_->setColumnWidth(AlarmsLogQueryModel::Eee, 220);
+  tableView_->setColumnWidth(AlarmsLogQueryModel::Gg, 30);
+  tableView_->setColumnWidth(AlarmsLogQueryModel::Zzz, 40);
+  tableView_->setColumnWidth(AlarmsLogQueryModel::Type, 45);
+  // tableView_->horizontalHeader()->setStretchLastSection(true);
+
+
+  
   tableView_->setAlternatingRowColors(true);
   //tableView_->setCurrentIndex(tableView_->model()->index(0, 0));
   tableView_->selectRow(0);
@@ -143,7 +155,7 @@ AlarmsLogDialog::AlarmsLogDialog(QWidget *parent)
   // mainLayout->addWidget(tableView);
   setLayout(layout);
  
-  setWindowTitle(tr("AlarmsLog"));
+  setWindowTitle(trUtf8("Журнал событий"));
   setFixedWidth(tableView_->horizontalHeader()->length()+50);
   setFixedHeight(500);
 }

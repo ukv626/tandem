@@ -7,14 +7,12 @@
 FlexWatchCam::FlexWatchCam(const QString &ip, int camNum, QWidget *parent)
   : ImageWidget(parent)
 {
-
   connect(&http_, SIGNAL(done(bool)), this, SLOT(httpDone(bool)));
   connect(&http_, SIGNAL(readyRead(const QHttpResponseHeader &)),
 	  this, SLOT(httpReadyRead(const QHttpResponseHeader &)));
-
   
   boundary_.append(QString("--myboundary"));
-  QSettings settings("tandem.conf", QSettings::IniFormat);
+  QSettings settings("./tandem.conf", QSettings::IniFormat);
   int fps = settings.value("fps", "30").toInt();
 
   http_.setHost(ip);
@@ -26,9 +24,6 @@ void FlexWatchCam::httpDone(bool error)
 {
   if(error && http_.error() != QHttp::Aborted)
     qDebug() << "Error: " << qPrintable(http_.errorString());
-  else {
-    qDebug() << "Finished.\n";
-  }
 }
 
 
@@ -73,5 +68,3 @@ void FlexWatchCam::httpReadyRead(const QHttpResponseHeader & resp)
     processing(array);
   }
 }
-
-
