@@ -11,7 +11,7 @@
 
 MainWindow::MainWindow()
   : valid_(true),
-    isMightyUser_(true)
+    isMightyUser_(false)
 {
     alarmsWindow_ = new AlarmsWindow;
     setCentralWidget(alarmsWindow_);
@@ -88,23 +88,23 @@ void MainWindow::post1Video()
 {
   QSettings settings("./tandem.conf", QSettings::IniFormat);
   CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
-			    1, 1, 3, this);
+			    1, 1, 2, this);
   cameraDialog.exec();
 }
 
 void MainWindow::post2Video()
 {
   QSettings settings("./tandem.conf", QSettings::IniFormat);
-  CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
-			    2, 2, 4, this);
+  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+			    2, 1, 2, this);
   cameraDialog.exec();
 }
 
 void MainWindow::post3Video()
 {
   QSettings settings("./tandem.conf", QSettings::IniFormat);
-  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
-			    3, 1, 3, this);
+  CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
+			    3, 3, 4, this);
   cameraDialog.exec();
 }
 
@@ -112,7 +112,7 @@ void MainWindow::post4Video()
 {
   QSettings settings("./tandem.conf", QSettings::IniFormat);
   CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
-			    4, 2, 4, this);
+			    4, 3, 4, this);
   cameraDialog.exec();
 }
 
@@ -120,7 +120,7 @@ void MainWindow::post5Video()
 {
   QSettings settings("./tandem.conf", QSettings::IniFormat);
   CameraDialog cameraDialog(settings.value("camera3", "127.0.0.1").toString(),
-			    5, 1, 3, this);
+			    5, 1, 2, this);
   cameraDialog.exec();
 }
 

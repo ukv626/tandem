@@ -60,12 +60,11 @@ QVariant AlarmsQueryModel::data(const QModelIndex &index, int role) const
       return value;
 
     
-    //   case Qt::TextAlignmentRole: // Выравнивание
-    //     if(index.column() == MoveDialog::Move_N ||
-    // 	 index.column() == MoveDialog::Move_Ost )
-    // 	return double(Qt::AlignRight | Qt::AlignVCenter);
-    //     else
-    // 	return int(Qt::AlignLeft | Qt::AlignVCenter);
+      case Qt::TextAlignmentRole: // Выравнивание
+        if(index.column() == Gg || index.column() == Zzz )
+	  return double(Qt::AlignRight | Qt::AlignVCenter);
+        else
+	  return int(Qt::AlignLeft | Qt::AlignVCenter);
   }
   return value;
 }
@@ -163,20 +162,19 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   tableView_->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
   tableView_->setColumnHidden(AlarmsQueryModel::Id, true);
+  tableView_->setColumnHidden(AlarmsQueryModel::Act, true);
+  tableView_->setColumnHidden(AlarmsQueryModel::Zzz, true);
   tableView_->setColumnHidden(AlarmsQueryModel::Q, true);
   tableView_->setColumnHidden(AlarmsQueryModel::IsRead, true);
   tableView_->setColumnHidden(AlarmsQueryModel::Type, true);
   tableView_->setColumnHidden(AlarmsQueryModel::IsAlert, true);
   
-  
-  // tableView->setColumnHidden(MoveDialog::Move_Qty, true);
-  
   tableView_->verticalHeader()->hide();
   tableView_->resizeColumnsToContents();
   tableView_->setAlternatingRowColors(true);
-  
-  // showPictures(tableModel_->index(0,0), tableModel_->index(0,0));
 
+  tableView_->setColumnWidth(AlarmsQueryModel::Eee, 335);
+  
   QAction *showMessageAction = new QAction(trUtf8("Просмотр.."), this);
   //showMessageAction->setShortcut(tr("Ins"));
   connect(showMessageAction, SIGNAL(triggered()), this, SLOT(showMessage()));
@@ -219,7 +217,8 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   setWindowTitle(tr("Alarms"));
   // setFixedWidth(tableView_->horizontalHeader()->length()+50);
 
-  if(checkLicense()) {
+// if(true) {
+ if(checkLicense()) {
     tcpServer_ = new QTcpServer(this);
     QSettings settings("./tandem.conf", QSettings::IniFormat);
     int port = settings.value("port", "45000").toInt();
@@ -308,6 +307,8 @@ bool AlarmsWindow::newEvent()
   QString msgType = data_.mid(8, 7);    
   if(msgType != "ADM-CID" && msgType != "NEW-MSG") 
     return false;
+
+  QProcess::startDetached("./beep.sh");
 
   qint8 sharpInd   = data_.indexOf("#");
   qint8 leftBrInd  = data_.indexOf("[");

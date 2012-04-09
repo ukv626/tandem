@@ -8,7 +8,7 @@ EventsRelModel::EventsRelModel(QObject *parent)
 {
   setTable("tb_events");
   setRelation(Type, QSqlRelation("tb_eventsType", "id", "text"));
-  setSort(Text, Qt::AscendingOrder);
+  setSort(Id, Qt::AscendingOrder);
   select();
 
   setHeaderData(Type, Qt::Horizontal, trUtf8("Тип"));
