@@ -90,6 +90,7 @@ signals:
   void newMailMsg(const QString& str);
 
 private:
+  bool isAlert(qint16 eee);
   void readEvents(const QString &filename);
   bool checkLicense();
   /* QString getColorByType(int type); */

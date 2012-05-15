@@ -6,6 +6,7 @@
 
 #include "AlarmsWindow.h"
 #include "ImagesDialog.h"
+#include "Notify911.h"
 
 AlarmsTableView::AlarmsTableView(QWidget *parent)
   : QTableView(parent)
@@ -39,7 +40,6 @@ QVariant AlarmsQueryModel::data(const QModelIndex &index, int role) const
     
   case Qt::TextColorRole:  //BackgroundColorRole
     return qVariantFromValue(QColor(index.sibling(index.row(), Type).data(Qt::DisplayRole).toString()));
-
 
   case Qt::DisplayRole:
     // if (index.column() == Date)
@@ -92,17 +92,17 @@ bool AlarmsQueryModel::setData(const QModelIndex &index,
 
 void AlarmsQueryModel::refresh()
 {
-  setQuery("SELECT l.id, l.date_, l.act, l.q, e.text, l.gg, l.zzz "
-	   ",l.isRead,et.text,e.isAlert "
-	   "FROM tb_logs l "
-	   ",tb_events e "
-	   ",tb_eventsType et "
-	   "WHERE l.eee=e.id "
-	   "AND e.type=et.id "
-	   "ORDER BY l.date_ DESC");
+  setQuery(" SELECT l.id, l.date_, l.act, l.q, e.text, l.gg, l.zzz"
+	   " ,l.isRead,et.text,e.isAlert"
+	   " FROM tb_logs l"
+	   " ,tb_events e" 
+	   " ,tb_eventsType et"
+	   " WHERE l.eee=e.id"
+	   " AND e.type=et.id"
+	   " AND e.isVisible=1"
+	   " ORDER BY l.date_ DESC");
 
-  setHeaderData(Date,
-  		Qt::Horizontal, trUtf8("Дата"));
+  setHeaderData(Date, Qt::Horizontal, trUtf8("Дата"));
   setHeaderData(Act, Qt::Horizontal, trUtf8("Объект"));
   setHeaderData(Q, Qt::Horizontal, trUtf8("Q"));
   setHeaderData(Eee, Qt::Horizontal, trUtf8("Сообщение"));
@@ -218,7 +218,7 @@ AlarmsWindow::AlarmsWindow(QWidget *parent)
   // setFixedWidth(tableView_->horizontalHeader()->length()+50);
 
 // if(true) {
- if(checkLicense()) {
+if(checkLicense()) {
     tcpServer_ = new QTcpServer(this);
     QSettings settings("./tandem.conf", QSettings::IniFormat);
     int port = settings.value("port", "45000").toInt();
@@ -300,6 +300,20 @@ void AlarmsWindow::doubleClick(const QModelIndex &index)
 //   return color;
 // }
 
+bool AlarmsWindow::isAlert(qint16 eee)
+{
+  bool result(false);
+  QSqlQuery query;
+  query.prepare("SELECT isAlert FROM tb_events WHERE id=:id");
+  query.bindValue(":id", eee);
+  if(query.exec() && query.next()) {
+    result = query.value(0).toBool();
+  }
+
+  qDebug() << eee << result;
+  return result;
+}
+
 bool AlarmsWindow::newEvent()
 {
   // qDebug() << data_; //.mid(0,3).toHex().toUpper()
@@ -309,7 +323,7 @@ bool AlarmsWindow::newEvent()
     return false;
 
   QProcess::startDetached("./beep.sh");
-
+  
   qint8 sharpInd   = data_.indexOf("#");
   qint8 leftBrInd  = data_.indexOf("[");
   qint8 rightBrInd = data_.indexOf("]");
@@ -324,23 +338,46 @@ bool AlarmsWindow::newEvent()
   QString msgOpt     = data_.mid(leftBrInd + 1, rightBrInd - leftBrInd - 1);
   QString msgOptTail = data_.mid(pipeInd + 1, rightBrInd - pipeInd - 1);
 
+  qint8 q    = msgOptTail.left(1).toInt();
+  qint16 eee = msgOptTail.mid(1, 3).toInt();
+  if(q == 3) eee *= -1;
+  qint8 gg   = msgOptTail.mid(5, 2).toInt();
+
+
+  // Пересылка сообщения на АРМы МЧС
+  if(isAlert(eee)) {
+      QSettings settings("./tandem.conf", QSettings::IniFormat);
+      QString ip = settings.value("ip911_1", "").toString();
+      quint32 port = settings.value("port911_1", "45002").toInt();
+
+      if(ip.size() > 0) {
+	Notify911 *notifier = new Notify911(ip, port, data_);
+      }
+
+      ip = settings.value("ip911_2", "").toString();
+      port = settings.value("port911_2", "45002").toInt();
+
+      if(ip.size() > 0) {
+	Notify911 *notifier = new Notify911(ip, port, data_);
+      }
+  }
+
+  
+  // Готовим данные (изменяя исходные) для отправки подтверждения
   data_.remove(leftBrInd + 1, rightBrInd - leftBrInd - 1);
   data_.replace(msgType, QByteArray("ACK"));
     
   data_.replace(3, 4, QString("%1").arg(data_.size() - 8, 4, 16,
 					QChar('0')).toUpper().toAscii());
 
-  qint8 q    = msgOptTail.left(1).toInt();
-  qint16 eee = msgOptTail.mid(1, 3).toInt();
-  qint8 gg   = msgOptTail.mid(5, 2).toInt();
-  
+  // Добавляем запись в журнал
   QSqlQuery query;
   query.prepare("INSERT INTO tb_logs VALUES(NULL,:Date,:Act,:Q,:Eee,:Gg,:Zzz,0)");
   query.bindValue(":Date",
 		  QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
   query.bindValue(":Act", msgAct);
   query.bindValue(":Q", q);
-  query.bindValue(":Eee", q != 3 ? eee : eee*(-1));
+  query.bindValue(":Eee", eee);
   query.bindValue(":Gg", gg);
   query.bindValue(":Zzz", msgOptTail.right(3).toInt());
   if(!query.exec())
@@ -351,6 +388,7 @@ bool AlarmsWindow::newEvent()
     tableModel_->refresh();
     tableView_->selectRow(row + 1);
 
+    // Обновляем кнопки индикации
     if(gg > 0 && gg <= labels.size()) {
       QAbstractItemModel *model = tableView_->model();
       QString type = model->data(model->index(0, AlarmsQueryModel::Type)).toString();

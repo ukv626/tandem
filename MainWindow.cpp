@@ -84,35 +84,35 @@ void MainWindow::password()
 }
 
 
-void MainWindow::post1Video()
-{
-  QSettings settings("./tandem.conf", QSettings::IniFormat);
-  CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
-			    1, 1, 2, this);
-  cameraDialog.exec();
-}
-
 void MainWindow::post2Video()
 {
   QSettings settings("./tandem.conf", QSettings::IniFormat);
-  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+  CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
 			    2, 1, 2, this);
   cameraDialog.exec();
 }
 
-void MainWindow::post3Video()
+void MainWindow::post1Video()
 {
   QSettings settings("./tandem.conf", QSettings::IniFormat);
-  CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
-			    3, 3, 4, this);
+  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+			    1, 1, 2, this);
   cameraDialog.exec();
 }
 
 void MainWindow::post4Video()
 {
   QSettings settings("./tandem.conf", QSettings::IniFormat);
-  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+  CameraDialog cameraDialog(settings.value("camera1", "127.0.0.1").toString(),
 			    4, 3, 4, this);
+  cameraDialog.exec();
+}
+
+void MainWindow::post3Video()
+{
+  QSettings settings("./tandem.conf", QSettings::IniFormat);
+  CameraDialog cameraDialog(settings.value("camera2", "127.0.0.1").toString(),
+			    3, 3, 4, this);
   cameraDialog.exec();
 }
 
